@@ -15,7 +15,7 @@
     --popover: 220 20% 10%;
     --popover-foreground: 210 15% 93%;
 
-    --primary: 260 80% 60%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 18% 14%;
@@ -24,7 +24,7 @@
     --muted: 220 14% 16%;
     --muted-foreground: 215 14% 50%;
 
-    --accent: 260 60% 50%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -32,7 +32,7 @@
 
     --border: 220 14% 14%;
     --input: 220 14% 16%;
-    --ring: 260 80% 60%;
+    --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
@@ -41,7 +41,7 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
 
-    --chart-1: 260 80% 60%;
+    --chart-1: 217 91% 60%;
     --chart-2: 199 89% 48%;
     --chart-3: 152 69% 41%;
     --chart-4: 38 92% 50%;
@@ -49,12 +49,12 @@
 
     --sidebar-background: 220 25% 7%;
     --sidebar-foreground: 215 15% 70%;
-    --sidebar-primary: 260 80% 60%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 18% 12%;
     --sidebar-accent-foreground: 210 15% 93%;
     --sidebar-border: 220 14% 12%;
-    --sidebar-ring: 260 80% 60%;
+    --sidebar-ring: 217 91% 60%;
   }
 }
 
@@ -66,6 +66,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
   }
 
   /* Custom scrollbar */

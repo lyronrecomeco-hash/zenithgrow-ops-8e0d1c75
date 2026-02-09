@@ -1,191 +1,149 @@
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, AlertTriangle, XCircle, GripVertical, User, Calendar, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CreditCard, CheckCircle2, Clock, AlertTriangle, XCircle, GripVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Installment {
-  id: number;
-  client: string;
-  description: string;
-  value: number;
-  dueDate: string;
-  saleId: string;
-  installmentNumber: string;
-  status: 'paid' | 'pending' | 'overdue' | 'cancelled';
-}
+type Status = 'Paga' | 'Pendente' | 'Vencida' | 'Cancelada';
 
-const initialInstallments: Installment[] = [
-  { id: 1, client: 'Maria Silva', description: 'Notebook Dell i7', value: 1400, dueDate: '10/02/2026', saleId: 'VND-001', installmentNumber: '2/3', status: 'pending' },
-  { id: 2, client: 'Maria Silva', description: 'Notebook Dell i7', value: 1400, dueDate: '10/03/2026', saleId: 'VND-001', installmentNumber: '3/3', status: 'pending' },
-  { id: 3, client: 'João Santos', description: 'iPhone 15 Pro', value: 1483, dueDate: '05/02/2026', saleId: 'VND-002', installmentNumber: '5/6', status: 'overdue' },
-  { id: 4, client: 'João Santos', description: 'iPhone 15 Pro', value: 1483, dueDate: '05/01/2026', saleId: 'VND-002', installmentNumber: '4/6', status: 'paid' },
-  { id: 5, client: 'Pedro Lima', description: 'TV Samsung 55"', value: 1250, dueDate: '15/02/2026', saleId: 'VND-003', installmentNumber: '2/4', status: 'pending' },
-  { id: 6, client: 'Pedro Lima', description: 'TV Samsung 55"', value: 1250, dueDate: '15/01/2026', saleId: 'VND-003', installmentNumber: '1/4', status: 'paid' },
-  { id: 7, client: 'Lucia Ferreira', description: 'Console PS5', value: 975, dueDate: '01/02/2026', saleId: 'VND-004', installmentNumber: '2/4', status: 'overdue' },
-  { id: 8, client: 'Ana Costa', description: 'Air Fryer Philips', value: 3100, dueDate: '05/02/2026', saleId: 'VND-005', installmentNumber: '1/1', status: 'paid' },
-  { id: 9, client: 'Pedro Lima', description: 'TV Samsung 55"', value: 1250, dueDate: '15/03/2026', saleId: 'VND-003', installmentNumber: '3/4', status: 'pending' },
-  { id: 10, client: 'Lucia Ferreira', description: 'Console PS5', value: 975, dueDate: '01/01/2026', saleId: 'VND-004', installmentNumber: '1/4', status: 'cancelled' },
-];
-
-const columns = [
-  { key: 'paid' as const, label: 'Pagas', icon: CheckCircle, color: 'text-success', accent: 'bg-success', accentBorder: 'border-success/30' },
-  { key: 'pending' as const, label: 'Pendentes', icon: Clock, color: 'text-primary', accent: 'bg-primary', accentBorder: 'border-primary/30' },
-  { key: 'overdue' as const, label: 'Vencidas', icon: AlertTriangle, color: 'text-destructive', accent: 'bg-destructive', accentBorder: 'border-destructive/30' },
-  { key: 'cancelled' as const, label: 'Canceladas', icon: XCircle, color: 'text-muted-foreground', accent: 'bg-muted-foreground', accentBorder: 'border-border' },
+const columns: { status: Status; label: string; icon: any; color: string }[] = [
+  { status: 'Paga', label: 'Pagas', icon: CheckCircle2, color: 'text-success' },
+  { status: 'Pendente', label: 'Pendentes', icon: Clock, color: 'text-warning' },
+  { status: 'Vencida', label: 'Vencidas', icon: AlertTriangle, color: 'text-destructive' },
+  { status: 'Cancelada', label: 'Canceladas', icon: XCircle, color: 'text-muted-foreground' },
 ];
 
 export default function Installments() {
-  const [installments, setInstallments] = useState(initialInstallments);
-  const [draggedItem, setDraggedItem] = useState<Installment | null>(null);
-  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+  const [installments, setInstallments] = useState<any[]>([]);
+  const [dragItem, setDragItem] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleDragStart = (e: React.DragEvent, item: Installment) => {
-    setDraggedItem(item);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', item.id.toString());
-  };
-
-  const handleDragOver = (e: React.DragEvent, colKey: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverCol(colKey);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverCol(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, newStatus: Installment['status']) => {
-    e.preventDefault();
-    setDragOverCol(null);
-    if (!draggedItem || draggedItem.status === newStatus) {
-      setDraggedItem(null);
-      return;
+  const loadData = useCallback(async () => {
+    const { data } = await supabase
+      .from('installments')
+      .select('*, sales(client_id, total, payment_method, clients(name))')
+      .order('due_date');
+    if (data) {
+      const now = new Date();
+      const updated = data.map(i => {
+        if (i.status === 'Pendente' && new Date(i.due_date) < now) {
+          return { ...i, status: 'Vencida' as Status };
+        }
+        return i;
+      });
+      setInstallments(updated);
     }
+  }, []);
 
-    setInstallments(prev => prev.map(i => i.id === draggedItem.id ? { ...i, status: newStatus } : i));
-    
-    const statusLabels: Record<string, string> = { paid: 'Paga', pending: 'Pendente', overdue: 'Vencida', cancelled: 'Cancelada' };
-    toast({ title: `Pagamento atualizado para: ${statusLabels[newStatus]}`, description: `${draggedItem.client} - R$ ${draggedItem.value.toLocaleString('pt-BR')}` });
-    setDraggedItem(null);
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const updateStatus = async (id: string, newStatus: Status) => {
+    const updates: any = { status: newStatus };
+    if (newStatus === 'Paga') updates.paid_date = new Date().toISOString().split('T')[0];
+    await supabase.from('installments').update(updates).eq('id', id);
+    toast({ title: `Pagamento marcado como ${newStatus}` });
+    loadData();
   };
 
-  const markAsPaid = (id: number) => {
-    const item = installments.find(i => i.id === id);
-    setInstallments(prev => prev.map(i => i.id === id ? { ...i, status: 'paid' as const } : i));
-    toast({ title: 'Pagamento baixado com sucesso', description: item ? `${item.client} - R$ ${item.value.toLocaleString('pt-BR')}` : '' });
+  const handleDragStart = (id: string) => setDragItem(id);
+  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
+  const handleDrop = (e: React.DragEvent, status: Status) => {
+    e.preventDefault();
+    if (dragItem) {
+      updateStatus(dragItem, status);
+      setDragItem(null);
+    }
   };
 
-  const totalByStatus = (status: string) => {
-    return installments.filter(i => i.status === status).reduce((sum, i) => sum + i.value, 0);
-  };
+  const getByStatus = (status: Status) => installments.filter(i => i.status === status);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Pagamentos</h1>
-        <p className="text-muted-foreground text-sm mt-1">Controle de pagamentos por status — arraste para atualizar</p>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+          <CreditCard className="w-7 h-7 text-primary" />
+          Pagamentos
+        </h1>
+        <p className="text-muted-foreground text-base mt-1">Arraste os cards para alterar o status</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {columns.map(col => {
-          const items = installments.filter(i => i.status === col.key);
-          const total = totalByStatus(col.key);
-          return (
-            <motion.div key={col.key} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-              <div
-                className={cn(
-                  "glass-card overflow-hidden transition-all duration-200 min-h-[400px]",
-                  dragOverCol === col.key && "ring-2 ring-primary/50 border-primary/30"
-                )}
-                onDragOver={(e) => handleDragOver(e, col.key)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, col.key)}
-              >
-                {/* Column header with accent line */}
-                <div className="p-4 pb-3">
-                  <div className={cn("w-full h-1 rounded-full mb-4", col.accent, "opacity-40")} />
-                  <div className="flex items-center justify-between">
+        {columns.map(col => (
+          <motion.div
+            key={col.status}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col"
+            onDragOver={handleDragOver}
+            onDrop={e => handleDrop(e, col.status)}
+          >
+            <div className="glass-card p-4 mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <col.icon className={cn("w-5 h-5", col.color)} />
+                <span className="font-semibold text-base">{col.label}</span>
+              </div>
+              <Badge variant="secondary" className="text-xs">{getByStatus(col.status).length}</Badge>
+            </div>
+
+            <div className="space-y-3 min-h-[200px]">
+              {getByStatus(col.status).map(inst => (
+                <div
+                  key={inst.id}
+                  draggable
+                  onDragStart={() => handleDragStart(inst.id)}
+                  className={cn(
+                    "glass-card p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 transition-all",
+                    dragItem === inst.id && "opacity-50 scale-95"
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <col.icon className={cn("w-4 h-4", col.color)} />
-                      <span className="text-sm font-semibold">{col.label}</span>
+                      <GripVertical className="w-4 h-4 text-muted-foreground/50" />
+                      <span className="font-bold text-lg text-primary">
+                        R$ {Number(inst.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
                     </div>
-                    <Badge variant="secondary" className="text-xs font-mono">{items.length}</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {inst.installment_number}ª parcela
+                    </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Total: R$ {total.toLocaleString('pt-BR')}
-                  </p>
-                </div>
 
-                {/* Cards */}
-                <div className="px-3 pb-3 space-y-2 max-h-[500px] overflow-y-auto">
-                  {items.map(item => (
-                    <div
-                      key={item.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, item)}
-                      className={cn(
-                        "p-3 rounded-xl cursor-grab active:cursor-grabbing transition-all group",
-                        "hover:scale-[1.02] hover:shadow-lg",
-                        draggedItem?.id === item.id && "opacity-40 scale-95",
-                        col.accentBorder
-                      )}
-                      style={{
-                        background: 'hsl(0 0% 100% / 0.03)',
-                        border: '1px solid hsl(0 0% 100% / 0.06)',
-                      }}
+                  <div className="space-y-1.5 text-sm">
+                    <p className="font-medium">{(inst.sales as any)?.clients?.name || 'N/A'}</p>
+                    <p className="text-muted-foreground">
+                      Vencimento: {new Date(inst.due_date).toLocaleDateString('pt-BR')}
+                    </p>
+                    {inst.paid_date && (
+                      <p className="text-success text-xs">Pago em: {new Date(inst.paid_date).toLocaleDateString('pt-BR')}</p>
+                    )}
+                    <p className="text-muted-foreground text-xs">
+                      Venda: R$ {Number((inst.sales as any)?.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+
+                  {col.status !== 'Paga' && col.status !== 'Cancelada' && (
+                    <Button
+                      size="sm"
+                      className="w-full mt-3 text-xs"
+                      onClick={() => updateStatus(inst.id, 'Paga')}
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <GripVertical className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold truncate">{item.client}</p>
-                            <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5 mb-2">
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <DollarSign className="w-3 h-3" />
-                          <span className="font-bold text-foreground">R$ {item.value.toLocaleString('pt-BR')}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          <span>Venc.: {item.dueDate}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span className="font-mono">{item.saleId}</span>
-                          <span className="font-mono">Parcela {item.installmentNumber}</span>
-                        </div>
-                      </div>
-
-                      {(col.key === 'pending' || col.key === 'overdue') && (
-                        <Button
-                          size="sm"
-                          className="w-full h-7 text-xs rounded-lg gradient-primary border-0 hover:opacity-90"
-                          onClick={(e) => { e.stopPropagation(); markAsPaid(item.id); }}
-                        >
-                          Dar Baixa
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  {items.length === 0 && (
-                    <div className="text-center py-8">
-                      <p className="text-xs text-muted-foreground">Nenhum pagamento</p>
-                      <p className="text-[10px] text-muted-foreground/60 mt-1">Arraste um item para cá</p>
-                    </div>
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Dar Baixa
+                    </Button>
                   )}
                 </div>
-              </div>
-            </motion.div>
-          );
-        })}
+              ))}
+              {getByStatus(col.status).length === 0 && (
+                <div className="glass-card p-6 text-center text-muted-foreground text-sm border-dashed">
+                  Nenhum pagamento
+                </div>
+              )}
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );

@@ -1,48 +1,62 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { email: string } | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  user: { email: string; id: string } | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const FIXED_EMAIL = 'loja-admin@gmail.com';
-const FIXED_PASSWORD = 'Admin@Loja2024!';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; id: string } | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('erp_auth');
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser({ email: session.user.email || '', id: session.user.id });
         setIsAuthenticated(true);
-      } catch { /* ignore */ }
-    }
-    setIsLoading(false);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+      setIsLoading(false);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({ email: session.user.email || '', id: session.user.id });
+        setIsAuthenticated(true);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
-    await new Promise(r => setTimeout(r, 1000));
-    if (email === FIXED_EMAIL && password === FIXED_PASSWORD) {
-      const userData = { email };
-      localStorage.setItem('erp_auth', JSON.stringify(userData));
-      setIsAuthenticated(true);
-      setUser(userData);
-      return true;
+    // Try sign in first
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (!signInError) return { success: true };
+
+    // If user doesn't exist, try sign up (only for initial setup)
+    if (signInError.message.includes('Invalid login credentials')) {
+      const { error: signUpError } = await supabase.auth.signUp({ email, password });
+      if (!signUpError) return { success: true };
+      return { success: false, error: signUpError.message };
     }
-    return false;
+
+    return { success: false, error: signInError.message };
   };
 
-  const logout = () => {
-    localStorage.removeItem('erp_auth');
+  const logout = async () => {
+    await supabase.auth.signOut();
     setIsAuthenticated(false);
     setUser(null);
   };

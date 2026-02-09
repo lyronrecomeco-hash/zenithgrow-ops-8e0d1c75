@@ -1,129 +1,113 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, Eye, X, Printer, FileText, Building2, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
-interface InvoiceItem {
-  product: string;
-  qty: number;
-  unitPrice: number;
-  total: number;
-}
-
-interface Invoice {
+interface InvoiceDetail {
   id: string;
-  client: string;
-  clientDoc: string;
-  clientAddress: string;
-  value: number;
-  date: string;
+  invoice_number: string;
   status: string;
-  paymentMethod: string;
-  installments: string;
-  items: InvoiceItem[];
+  created_at: string;
+  sale: any;
+  items: any[];
+  client: any;
+  company: any;
+  installments: any[];
 }
-
-const mockInvoices: Invoice[] = [
-  {
-    id: 'NF-001', client: 'Maria Silva', clientDoc: '123.456.789-00', clientAddress: 'Rua das Flores, 123 - Centro, São Paulo/SP',
-    value: 4200, date: '08/02/2026', status: 'Emitida', paymentMethod: 'Cartão 3x', installments: '3x R$ 1.400,00',
-    items: [
-      { product: 'Notebook Dell Inspiron i7', qty: 1, unitPrice: 4200, total: 4200 },
-    ]
-  },
-  {
-    id: 'NF-002', client: 'João Santos', clientDoc: '987.654.321-00', clientAddress: 'Av. Paulista, 1000 - Bela Vista, São Paulo/SP',
-    value: 8900, date: '07/02/2026', status: 'Emitida', paymentMethod: 'Boleto 6x', installments: '6x R$ 1.483,33',
-    items: [
-      { product: 'iPhone 15 Pro 256GB', qty: 1, unitPrice: 7400, total: 7400 },
-      { product: 'Capa de Proteção iPhone', qty: 1, unitPrice: 150, total: 150 },
-      { product: 'Película Premium', qty: 2, unitPrice: 75, total: 150 },
-      { product: 'Carregador MagSafe', qty: 1, unitPrice: 1200, total: 1200 },
-    ]
-  },
-  {
-    id: 'NF-003', client: 'Ana Costa', clientDoc: '456.789.123-00', clientAddress: 'Rua da Paz, 456 - Jardim, Campinas/SP',
-    value: 3100, date: '05/02/2026', status: 'Emitida', paymentMethod: 'À Vista (PIX)', installments: '1x R$ 3.100,00',
-    items: [
-      { product: 'Air Fryer Philips Walita XXL', qty: 1, unitPrice: 3100, total: 3100 },
-    ]
-  },
-  {
-    id: 'NF-004', client: 'Pedro Lima', clientDoc: '321.654.987-00', clientAddress: 'Av. Brasil, 789 - Centro, Curitiba/PR',
-    value: 12500, date: '03/02/2026', status: 'Pendente', paymentMethod: 'Cartão 10x', installments: '10x R$ 1.250,00',
-    items: [
-      { product: 'TV Samsung 55" 4K QLED', qty: 1, unitPrice: 5000, total: 5000 },
-      { product: 'Soundbar Samsung HW-Q990D', qty: 1, unitPrice: 4500, total: 4500 },
-      { product: 'Console PS5 Digital', qty: 1, unitPrice: 3000, total: 3000 },
-    ]
-  },
-];
 
 export default function Invoices() {
-  const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [preview, setPreview] = useState<InvoiceDetail | null>(null);
+
+  useEffect(() => { loadInvoices(); }, []);
+
+  const loadInvoices = async () => {
+    const { data } = await supabase
+      .from('invoices')
+      .select('*, sales(*, clients(*))')
+      .order('created_at', { ascending: false });
+    if (data) setInvoices(data);
+  };
+
+  const openPreview = async (inv: any) => {
+    const [itemsRes, companyRes, installmentsRes] = await Promise.all([
+      supabase.from('sale_items').select('*').eq('sale_id', inv.sale_id),
+      supabase.from('company_settings').select('*').limit(1).maybeSingle(),
+      supabase.from('installments').select('*').eq('sale_id', inv.sale_id).order('installment_number'),
+    ]);
+
+    setPreview({
+      id: inv.id,
+      invoice_number: inv.invoice_number,
+      status: inv.status,
+      created_at: inv.created_at,
+      sale: inv.sales,
+      items: itemsRes.data || [],
+      client: (inv.sales as any)?.clients || {},
+      company: companyRes.data || { name: 'Minha Loja', cnpj: '', address: '', phone: '', email: '' },
+      installments: installmentsRes.data || [],
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Notas Fiscais</h1>
-        <p className="text-muted-foreground text-sm mt-1">Gestão e visualização de notas fiscais</p>
+        <h1 className="text-3xl font-bold tracking-tight">Notas Fiscais</h1>
+        <p className="text-muted-foreground text-base mt-1">Gestão e visualização de notas fiscais</p>
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="glass-card overflow-hidden">
-          <div className="px-2 pb-2">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/30 hover:bg-transparent">
-                  <TableHead className="text-xs font-semibold text-muted-foreground">NÚMERO</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground">CLIENTE</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground">VALOR</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground hidden sm:table-cell">DATA</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground">STATUS</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground text-right">AÇÕES</TableHead>
+        <div className="glass-card overflow-hidden p-2">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/30 hover:bg-transparent">
+                <TableHead className="text-xs font-semibold text-muted-foreground">NÚMERO</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground">CLIENTE</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground">VALOR</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground hidden sm:table-cell">DATA</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground">STATUS</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground text-right">AÇÕES</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoices.map(inv => (
+                <TableRow key={inv.id} className="border-border/20 hover:bg-muted/20 transition-colors">
+                  <TableCell className="font-mono text-base font-medium">{inv.invoice_number}</TableCell>
+                  <TableCell className="text-base">{(inv.sales as any)?.clients?.name || 'N/A'}</TableCell>
+                  <TableCell className="text-base font-bold">R$ {Number((inv.sales as any)?.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">{new Date(inv.created_at).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="bg-success/10 text-success border-success/20 text-xs">{inv.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openPreview(inv)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockInvoices.map(inv => (
-                  <TableRow key={inv.id} className="border-border/20 hover:bg-muted/20 transition-colors">
-                    <TableCell className="font-mono text-sm font-medium">{inv.id}</TableCell>
-                    <TableCell className="text-sm">{inv.client}</TableCell>
-                    <TableCell className="text-sm font-bold">R$ {inv.value.toLocaleString('pt-BR')}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">{inv.date}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={inv.status === 'Emitida' ? 'bg-success/10 text-success border-success/20 text-xs' : 'bg-warning/10 text-warning border-warning/20 text-xs'}>
-                        {inv.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setPreviewInvoice(inv)}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+              {invoices.length === 0 && (
+                <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-base">Nenhuma nota fiscal gerada. Crie uma venda primeiro.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </motion.div>
 
       {/* Invoice Preview Modal */}
       <AnimatePresence>
-        {previewInvoice && (
+        {preview && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setPreviewInvoice(null)}
+            onClick={() => setPreview(null)}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -137,57 +121,58 @@ export default function Invoices() {
               <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'hsl(0 0% 100% / 0.08)' }}>
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary" />
-                  <span className="font-semibold text-sm">Preview — {previewInvoice.id}</span>
+                  <span className="font-semibold text-base">Nota Fiscal — {preview.invoice_number}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="icon" className="h-8 w-8"><Printer className="w-4 h-4" /></Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8"><Download className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewInvoice(null)}><X className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreview(null)}><X className="w-4 h-4" /></Button>
                 </div>
               </div>
 
               {/* Invoice Content */}
-              <div className="p-8 space-y-6 text-sm" style={{ background: 'hsl(220, 15%, 14%)' }}>
-                {/* Header */}
+              <div className="p-8 space-y-6 text-base" style={{ background: 'hsl(220, 15%, 14%)' }}>
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-primary mb-1">NOTA FISCAL</h2>
-                    <p className="text-muted-foreground text-xs">Documento fiscal de venda</p>
+                    <p className="text-muted-foreground text-sm">Documento fiscal de venda</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono font-bold text-lg">{previewInvoice.id}</p>
-                    <p className="text-xs text-muted-foreground">{previewInvoice.date}</p>
+                    <p className="font-mono font-bold text-xl">{preview.invoice_number}</p>
+                    <p className="text-sm text-muted-foreground">{new Date(preview.created_at).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
 
                 <div className="w-full h-px" style={{ background: 'hsl(0 0% 100% / 0.08)' }} />
 
-                {/* Company + Client */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
                       <Building2 className="w-4 h-4 text-primary" />
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emitente</span>
                     </div>
-                    <p className="font-semibold">Store Manager Ltda</p>
-                    <p className="text-xs text-muted-foreground">CNPJ: 12.345.678/0001-90</p>
-                    <p className="text-xs text-muted-foreground">Rua do Comércio, 500 — Centro</p>
-                    <p className="text-xs text-muted-foreground">São Paulo/SP — CEP: 01001-000</p>
+                    <p className="font-semibold">{preview.company.name}</p>
+                    {preview.company.cnpj && <p className="text-sm text-muted-foreground">CNPJ: {preview.company.cnpj}</p>}
+                    {preview.company.address && <p className="text-sm text-muted-foreground">{preview.company.address}</p>}
+                    {preview.company.phone && <p className="text-sm text-muted-foreground">Tel: {preview.company.phone}</p>}
+                    {preview.company.email && <p className="text-sm text-muted-foreground">{preview.company.email}</p>}
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
                       <User className="w-4 h-4 text-primary" />
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Destinatário</span>
                     </div>
-                    <p className="font-semibold">{previewInvoice.client}</p>
-                    <p className="text-xs text-muted-foreground">CPF: {previewInvoice.clientDoc}</p>
-                    <p className="text-xs text-muted-foreground">{previewInvoice.clientAddress}</p>
+                    <p className="font-semibold">{preview.client.name || 'N/A'}</p>
+                    {preview.client.cpf_cnpj && <p className="text-sm text-muted-foreground">CPF/CNPJ: {preview.client.cpf_cnpj}</p>}
+                    {preview.client.address && <p className="text-sm text-muted-foreground">{preview.client.address}</p>}
+                    {preview.client.phone && <p className="text-sm text-muted-foreground">Tel: {preview.client.phone}</p>}
+                    {preview.client.email && <p className="text-sm text-muted-foreground">{preview.client.email}</p>}
                   </div>
                 </div>
 
                 <div className="w-full h-px" style={{ background: 'hsl(0 0% 100% / 0.08)' }} />
 
-                {/* Items Table */}
+                {/* Items */}
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">Produtos / Serviços</span>
                   <div className="rounded-xl overflow-hidden" style={{ border: '1px solid hsl(0 0% 100% / 0.06)' }}>
@@ -201,12 +186,12 @@ export default function Invoices() {
                         </tr>
                       </thead>
                       <tbody>
-                        {previewInvoice.items.map((item, i) => (
+                        {preview.items.map((item, i) => (
                           <tr key={i} style={{ borderTop: '1px solid hsl(0 0% 100% / 0.04)' }}>
-                            <td className="p-3 font-medium">{item.product}</td>
-                            <td className="p-3 text-center text-muted-foreground">{item.qty}</td>
-                            <td className="p-3 text-right text-muted-foreground">R$ {item.unitPrice.toLocaleString('pt-BR')}</td>
-                            <td className="p-3 text-right font-bold">R$ {item.total.toLocaleString('pt-BR')}</td>
+                            <td className="p-3 font-medium">{item.product_name}</td>
+                            <td className="p-3 text-center text-muted-foreground">{item.quantity}</td>
+                            <td className="p-3 text-right text-muted-foreground">R$ {Number(item.unit_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="p-3 text-right font-bold">R$ {Number(item.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -216,23 +201,43 @@ export default function Invoices() {
 
                 <div className="w-full h-px" style={{ background: 'hsl(0 0% 100% / 0.08)' }} />
 
+                {/* Installments */}
+                {preview.installments.length > 0 && (
+                  <>
+                    <div>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">Parcelas</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {preview.installments.map(inst => (
+                          <div key={inst.id} className="glass-card p-3 text-center">
+                            <p className="text-xs text-muted-foreground">{inst.installment_number}ª parcela</p>
+                            <p className="font-bold text-sm">R$ {Number(inst.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-muted-foreground">{new Date(inst.due_date).toLocaleDateString('pt-BR')}</p>
+                            <Badge variant="secondary" className={`text-[10px] mt-1 ${inst.status === 'Paga' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                              {inst.status}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="w-full h-px" style={{ background: 'hsl(0 0% 100% / 0.08)' }} />
+                  </>
+                )}
+
                 {/* Payment + Total */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pagamento</span>
-                    <p className="text-sm">{previewInvoice.paymentMethod}</p>
-                    <p className="text-xs text-muted-foreground">{previewInvoice.installments}</p>
+                    <p className="text-base">{preview.sale?.payment_method} — {preview.sale?.num_installments}x</p>
                   </div>
                   <div className="text-right space-y-1">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">Valor Total</span>
-                    <p className="text-3xl font-bold text-primary">R$ {previewInvoice.value.toLocaleString('pt-BR')}</p>
+                    <p className="text-3xl font-bold text-primary">R$ {Number(preview.sale?.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
 
-                {/* Footer */}
                 <div className="pt-4 text-center" style={{ borderTop: '1px solid hsl(0 0% 100% / 0.06)' }}>
-                  <p className="text-[10px] text-muted-foreground">
-                    Documento gerado automaticamente pelo sistema Store Manager — {previewInvoice.date}
+                  <p className="text-xs text-muted-foreground">
+                    Documento gerado automaticamente pelo sistema {preview.company.name} — {new Date(preview.created_at).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
               </div>
