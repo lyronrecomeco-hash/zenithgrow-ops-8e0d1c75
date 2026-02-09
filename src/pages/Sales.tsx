@@ -172,7 +172,7 @@ export default function Sales() {
 
       {/* New Sale Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl glass-card-strong border-border/30 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary" />Nova Venda</DialogTitle>
             <DialogDescription>Selecione o cliente, adicione produtos e configure o pagamento</DialogDescription>
@@ -276,7 +276,7 @@ export default function Sales() {
 
       {/* Sale Detail Dialog */}
       <Dialog open={!!detailSale} onOpenChange={() => setDetailSale(null)}>
-        <DialogContent className="sm:max-w-lg bg-card border-border">
+        <DialogContent className="sm:max-w-lg glass-card-strong border-border/30">
           <DialogHeader>
             <DialogTitle>Detalhes da Venda</DialogTitle>
           </DialogHeader>

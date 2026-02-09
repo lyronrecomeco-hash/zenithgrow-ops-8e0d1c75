@@ -262,7 +262,7 @@ export default function Products() {
 
       {/* Multi-step Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg bg-card border-border max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg glass-card-strong border-border/30 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg">{editProduct ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
             <DialogDescription>
@@ -475,7 +475,7 @@ export default function Products() {
       </Dialog>
 
       <Dialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogContent className="sm:max-w-md glass-card-strong border-border/30">
           <DialogHeader>
             <DialogTitle>Confirmar Exclusão</DialogTitle>
             <DialogDescription>Tem certeza? Esta ação não pode ser desfeita.</DialogDescription>

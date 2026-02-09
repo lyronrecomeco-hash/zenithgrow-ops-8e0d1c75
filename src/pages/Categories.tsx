@@ -98,7 +98,7 @@ export default function Categories() {
       </motion.div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-card border-border">
+          <DialogContent className="sm:max-w-md glass-card-strong border-border/30">
           <DialogHeader><DialogTitle className="text-lg">{editId ? 'Editar' : 'Nova'} Categoria</DialogTitle><DialogDescription>Preencha os dados</DialogDescription></DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>Nome *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="bg-secondary/50" /></div>
@@ -109,7 +109,7 @@ export default function Categories() {
       </Dialog>
 
       <Dialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogContent className="sm:max-w-md glass-card-strong border-border/30">
           <DialogHeader><DialogTitle>Confirmar Exclusão</DialogTitle><DialogDescription>Tem certeza?</DialogDescription></DialogHeader>
           <DialogFooter><Button variant="outline" onClick={() => setDeleteId(null)}>Cancelar</Button><Button variant="destructive" onClick={handleDelete}>Excluir</Button></DialogFooter>
         </DialogContent>

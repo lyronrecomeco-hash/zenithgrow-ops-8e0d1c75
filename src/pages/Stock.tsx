@@ -131,7 +131,7 @@ export default function Stock() {
       </motion.div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogContent className="sm:max-w-md glass-card-strong border-border/30">
           <DialogHeader><DialogTitle className="text-lg">Nova Movimentação</DialogTitle><DialogDescription>Registre entrada ou saída de estoque</DialogDescription></DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
