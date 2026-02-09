@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Pencil, Trash2, Package, Sparkles, Upload, ChevronRight, ChevronLeft, Loader2, ImageIcon, X } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Package, Sparkles, Upload, ChevronRight, ChevronLeft, Loader2, X, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -31,8 +31,9 @@ export default function Products() {
   const [step, setStep] = useState<Step>('data');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiImageLoading, setAiImageLoading] = useState(false);
-  const [aiImages, setAiImages] = useState<{ url: string; source: string }[]>([]);
+  const [aiImages, setAiImages] = useState<{ url: string; source: string; is_main?: boolean }[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -61,6 +62,7 @@ export default function Products() {
     setEditProduct(null);
     setForm({ name: '', brand: '', price: '', code: '', category_id: '', description: '', image_url: '' });
     setAiImages([]);
+    setSelectedImageIndex(0);
     setStep('data');
     setDialogOpen(true);
   };
@@ -69,6 +71,7 @@ export default function Products() {
     setEditProduct(p);
     setForm({ name: p.name, brand: p.brand || '', price: String(p.price), code: p.code, category_id: p.category_id || '', description: p.description || '', image_url: p.image_url || '' });
     setAiImages([]);
+    setSelectedImageIndex(0);
     setStep('data');
     setDialogOpen(true);
   };
@@ -89,7 +92,7 @@ export default function Products() {
       if (error) throw error;
       if (data?.description) {
         setForm(f => ({ ...f, description: data.description }));
-        toast({ title: 'Descrição técnica gerada com IA!' });
+        toast({ title: 'Especificações técnicas geradas!' });
       }
     } catch (err: any) {
       toast({ title: 'Erro ao gerar descrição', description: err.message, variant: 'destructive' });
@@ -108,9 +111,18 @@ export default function Products() {
       if (error) throw error;
       if (data?.images && data.images.length > 0) {
         setAiImages(data.images);
+        // Auto-select main image
+        const mainIdx = data.images.findIndex((img: any) => img.is_main);
+        if (mainIdx >= 0) {
+          setForm(f => ({ ...f, image_url: data.images[mainIdx].url }));
+          setSelectedImageIndex(mainIdx);
+        } else {
+          setForm(f => ({ ...f, image_url: data.images[0].url }));
+          setSelectedImageIndex(0);
+        }
         toast({ title: `${data.images.length} imagem(ns) encontrada(s)!` });
       } else {
-        toast({ title: 'Nenhuma imagem encontrada', variant: 'destructive' });
+        toast({ title: 'Nenhuma imagem encontrada', description: 'Tente enviar manualmente', variant: 'destructive' });
       }
     } catch (err: any) {
       toast({ title: 'Erro ao buscar imagens', description: err.message, variant: 'destructive' });
@@ -118,9 +130,9 @@ export default function Products() {
     setAiImageLoading(false);
   };
 
-  const selectAiImage = (url: string) => {
+  const selectAiImage = (url: string, index: number) => {
     setForm(f => ({ ...f, image_url: url }));
-    toast({ title: 'Imagem selecionada!' });
+    setSelectedImageIndex(index);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,7 +220,6 @@ export default function Products() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filtered.map((p) => (
           <div key={p.id} className="glass-card overflow-hidden group hover:border-primary/20 transition-all">
-            {/* Image */}
             <div className="relative w-full h-40 bg-secondary/30">
               {p.image_url ? (
                 <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
@@ -225,8 +236,6 @@ export default function Products() {
                 <Badge variant="destructive" className="absolute top-2 left-2 text-[10px] bg-destructive/90">Estoque Baixo</Badge>
               )}
             </div>
-
-            {/* Info */}
             <div className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -258,8 +267,8 @@ export default function Products() {
             <DialogTitle className="text-lg">{editProduct ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
             <DialogDescription>
               {step === 'data' && 'Preencha os dados básicos do produto'}
-              {step === 'description' && 'Descrição completa com especificações técnicas'}
-              {step === 'images' && 'Adicione imagens reais do produto'}
+              {step === 'description' && 'Especificações técnicas do produto'}
+              {step === 'images' && 'Adicione até 4 imagens reais do produto'}
             </DialogDescription>
           </DialogHeader>
 
@@ -271,17 +280,13 @@ export default function Products() {
                   onClick={() => setStep(s.key)}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all w-full justify-center",
-                    step === s.key
-                      ? "bg-primary/10 text-primary border border-primary/20"
-                      : "text-muted-foreground hover:bg-secondary/50"
+                    step === s.key ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:bg-secondary/50"
                   )}
                 >
                   <span className={cn(
                     "w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold",
                     step === s.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                  )}>
-                    {i + 1}
-                  </span>
+                  )}>{i + 1}</span>
                   <span className="hidden sm:inline">{s.label}</span>
                 </button>
               </div>
@@ -319,12 +324,12 @@ export default function Products() {
               </div>
             )}
 
-            {/* Step 2: Description */}
+            {/* Step 2: Description - Technical Specs Only */}
             {step === 'description' && (
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Descrição Técnica</Label>
+                    <Label>Especificações Técnicas</Label>
                     <Button variant="outline" size="sm" onClick={generateDescription} disabled={aiLoading} className="gap-1.5">
                       {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary" />}
                       Gerar com IA
@@ -333,35 +338,38 @@ export default function Products() {
                   <Textarea
                     value={form.description}
                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                    className="bg-secondary/50 min-h-[200px]"
-                    placeholder="Clique em 'Gerar com IA' para uma descrição completa com especificações técnicas reais..."
+                    className="bg-secondary/50 min-h-[220px] text-sm"
+                    placeholder="Clique em 'Gerar com IA' para obter as especificações técnicas reais (RAM, tela, bateria, processador, etc)..."
                   />
                 </div>
                 {aiLoading && (
                   <div className="glass-card p-4 flex items-center gap-3">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     <div>
-                      <p className="text-sm font-medium">Gerando descrição completa...</p>
-                      <p className="text-xs text-muted-foreground">A IA está pesquisando especificações técnicas reais de "{form.name}"</p>
+                      <p className="text-sm font-medium">Buscando especificações técnicas...</p>
+                      <p className="text-xs text-muted-foreground">RAM, tela, bateria, processador de "{form.name}"</p>
                     </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Step 3: Images */}
+            {/* Step 3: Images - 1 main + 3 secondary */}
             {step === 'images' && (
               <div className="space-y-4">
-                {/* Current selected image */}
+                {/* Main selected image */}
                 {form.image_url && (
                   <div className="relative rounded-xl overflow-hidden border border-border/30">
-                    <img src={form.image_url} alt="Produto" className="w-full h-48 object-contain bg-secondary/20" />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2 h-7 text-xs"
-                      onClick={() => setForm(f => ({ ...f, image_url: '' }))}
-                    >
+                    <img
+                      src={form.image_url}
+                      alt="Produto"
+                      className="w-full h-52 object-contain bg-secondary/20"
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                    />
+                    <div className="absolute top-2 left-2">
+                      <Badge className="text-[10px] bg-primary/90"><Star className="w-3 h-3 mr-1" /> Principal</Badge>
+                    </div>
+                    <Button variant="destructive" size="sm" className="absolute top-2 right-2 h-7 text-xs" onClick={() => setForm(f => ({ ...f, image_url: '' }))}>
                       <X className="w-3 h-3 mr-1" /> Remover
                     </Button>
                   </div>
@@ -380,7 +388,6 @@ export default function Products() {
                       <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP</p>
                     </div>
                   </button>
-
                   <button
                     onClick={searchImages}
                     disabled={aiImageLoading || !form.name}
@@ -389,7 +396,7 @@ export default function Products() {
                     {aiImageLoading ? <Loader2 className="w-8 h-8 text-primary animate-spin" /> : <Sparkles className="w-8 h-8 text-primary" />}
                     <div>
                       <p className="font-medium text-sm">Buscar com IA</p>
-                      <p className="text-xs text-muted-foreground mt-1">Até 3 imagens reais</p>
+                      <p className="text-xs text-muted-foreground mt-1">Extrai até 4 imagens reais</p>
                     </div>
                   </button>
                 </div>
@@ -400,31 +407,36 @@ export default function Products() {
                   <div className="glass-card p-4 flex items-center gap-3">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     <div>
-                      <p className="text-sm font-medium">Buscando imagens reais...</p>
-                      <p className="text-xs text-muted-foreground">Extraindo fotos de "{form.name}" da internet</p>
+                      <p className="text-sm font-medium">Extraindo imagens reais da internet...</p>
+                      <p className="text-xs text-muted-foreground">Buscando fotos de "{form.name}" em lojas e fabricantes</p>
                     </div>
                   </div>
                 )}
 
-                {/* AI found images */}
+                {/* AI found images - grid of 4 */}
                 {aiImages.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="text-sm">Imagens encontradas — clique para selecionar</Label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <Label className="text-sm">Imagens encontradas — clique para definir como principal</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {aiImages.map((img, i) => (
                         <button
                           key={i}
-                          onClick={() => selectAiImage(img.url)}
+                          onClick={() => selectAiImage(img.url, i)}
                           className={cn(
                             "relative rounded-xl overflow-hidden border-2 transition-all h-28 bg-secondary/20",
                             form.image_url === img.url ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-primary/40"
                           )}
                         >
-                          <img src={img.url} alt={`Opção ${i + 1}`} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
+                          <img
+                            src={img.url}
+                            alt={`Imagem ${i + 1}`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                          />
                           <span className="absolute bottom-1 left-1 right-1 text-[9px] text-muted-foreground bg-background/80 backdrop-blur-sm rounded px-1 py-0.5 truncate">{img.source}</span>
                           {form.image_url === img.url && (
-                            <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                              <Badge className="text-[10px]">Selecionada</Badge>
+                            <div className="absolute top-1 left-1">
+                              <Badge className="text-[8px] px-1 py-0"><Star className="w-2 h-2 mr-0.5" />Principal</Badge>
                             </div>
                           )}
                         </button>

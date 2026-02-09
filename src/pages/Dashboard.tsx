@@ -73,15 +73,22 @@ export default function Dashboard() {
       avgTicket: sales.length > 0 ? totalRevenue / sales.length : 0,
     });
 
-    // Sales by month
+    // Sales by month - always show last 7 months even if empty
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const now = new Date();
     const monthMap: Record<string, number> = {};
+    // Initialize last 7 months with 0
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthMap[key] = 0;
+    }
     sales.forEach(s => {
       const d = new Date(s.created_at);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      monthMap[key] = (monthMap[key] || 0) + Number(s.total);
+      if (monthMap[key] !== undefined) monthMap[key] += Number(s.total);
     });
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    setSalesData(Object.entries(monthMap).sort().slice(-7).map(([k, v]) => ({
+    setSalesData(Object.entries(monthMap).sort().map(([k, v]) => ({
       month: months[parseInt(k.split('-')[1]) - 1],
       vendas: v,
     })));
@@ -153,27 +160,21 @@ export default function Dashboard() {
           <div className="glass-card p-6">
             <h3 className="text-base font-semibold mb-4">Vendas por Mês</h3>
             <div className="h-[280px]">
-              {salesData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={salesData}>
-                    <defs>
-                      <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 14%)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 13, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 13, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="vendas" name="Vendas" stroke="hsl(217, 91%, 60%)" strokeWidth={2.5} fill="url(#salesGrad)" dot={{ r: 4, fill: 'hsl(217, 91%, 60%)' }} activeDot={{ r: 6 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground text-base">
-                  Nenhuma venda registrada ainda
-                </div>
-              )}
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={salesData}>
+                  <defs>
+                    <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 14%)" />
+                  <XAxis dataKey="month" tick={{ fontSize: 13, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 13, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="vendas" name="Vendas" stroke="hsl(217, 91%, 60%)" strokeWidth={2.5} fill="url(#salesGrad)" dot={{ r: 4, fill: 'hsl(217, 91%, 60%)' }} activeDot={{ r: 6 }} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </motion.div>

@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Eye, X, DollarSign, CreditCard, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +21,14 @@ interface Client {
   city: string;
 }
 
+interface ClientSaleData {
+  totalSpent: number;
+  totalSales: number;
+  pendingInstallments: number;
+  pendingAmount: number;
+  sales: any[];
+}
+
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
@@ -28,6 +37,9 @@ export default function Clients() {
   const [editClient, setEditClient] = useState<Client | null>(null);
   const [form, setForm] = useState({ name: '', cpf_cnpj: '', phone: '', email: '', address: '', city: '' });
   const [salesCount, setSalesCount] = useState<Record<string, number>>({});
+  const [detailClient, setDetailClient] = useState<Client | null>(null);
+  const [clientData, setClientData] = useState<ClientSaleData | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => { loadClients(); }, []);
@@ -35,13 +47,41 @@ export default function Clients() {
   const loadClients = async () => {
     const { data } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
     if (data) setClients(data);
-    
+
     const { data: sales } = await supabase.from('sales').select('client_id');
     if (sales) {
       const counts: Record<string, number> = {};
       sales.forEach(s => { if (s.client_id) counts[s.client_id] = (counts[s.client_id] || 0) + 1; });
       setSalesCount(counts);
     }
+  };
+
+  const loadClientDetails = async (client: Client) => {
+    setDetailClient(client);
+    setLoadingDetail(true);
+    try {
+      const { data: sales } = await supabase
+        .from('sales')
+        .select('*, sale_items(*), installments(*)')
+        .eq('client_id', client.id)
+        .order('created_at', { ascending: false });
+
+      const allSales = sales || [];
+      const totalSpent = allSales.reduce((a, s) => a + Number(s.total), 0);
+      const allInstallments = allSales.flatMap(s => s.installments || []);
+      const pending = allInstallments.filter(i => i.status === 'Pendente' || i.status === 'Vencida');
+
+      setClientData({
+        totalSpent,
+        totalSales: allSales.length,
+        pendingInstallments: pending.length,
+        pendingAmount: pending.reduce((a, i) => a + Number(i.amount), 0),
+        sales: allSales,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    setLoadingDetail(false);
   };
 
   const filtered = clients.filter(c =>
@@ -128,6 +168,7 @@ export default function Clients() {
                   <TableCell><Badge variant="secondary" className="text-xs">{salesCount[c.id] || 0}</Badge></TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => loadClientDetails(c)}><Eye className="w-3.5 h-3.5" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(c)}><Pencil className="w-3.5 h-3.5" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>
@@ -165,6 +206,104 @@ export default function Clients() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleSave}>{editClient ? 'Salvar' : 'Cadastrar'}</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Client Details Dialog */}
+      <Dialog open={detailClient !== null} onOpenChange={() => { setDetailClient(null); setClientData(null); }}>
+        <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-bold text-primary">{detailClient?.name.charAt(0)}</span>
+              </div>
+              {detailClient?.name}
+            </DialogTitle>
+            <DialogDescription>
+              {detailClient?.email && <span>{detailClient.email}</span>}
+              {detailClient?.phone && <span> · {detailClient.phone}</span>}
+              {detailClient?.city && <span> · {detailClient.city}</span>}
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingDetail ? (
+            <div className="py-12 text-center text-muted-foreground">Carregando...</div>
+          ) : clientData ? (
+            <div className="space-y-4 py-2">
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="glass-card p-3 text-center">
+                  <DollarSign className="w-5 h-5 text-primary mx-auto mb-1" />
+                  <p className="text-lg font-bold">R$ {clientData.totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">Total gasto</p>
+                </div>
+                <div className="glass-card p-3 text-center">
+                  <CreditCard className="w-5 h-5 text-primary mx-auto mb-1" />
+                  <p className="text-lg font-bold">{clientData.totalSales}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">Compras</p>
+                </div>
+                <div className="glass-card p-3 text-center">
+                  <Clock className="w-5 h-5 text-warning mx-auto mb-1" />
+                  <p className="text-lg font-bold">{clientData.pendingInstallments}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">Parcelas pendentes</p>
+                </div>
+                <div className="glass-card p-3 text-center">
+                  <DollarSign className="w-5 h-5 text-destructive mx-auto mb-1" />
+                  <p className="text-lg font-bold">R$ {clientData.pendingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">Valor pendente</p>
+                </div>
+              </div>
+
+              {/* Sales history */}
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Histórico de Compras</h4>
+                {clientData.sales.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {clientData.sales.map((sale: any) => {
+                      const paidInstallments = (sale.installments || []).filter((i: any) => i.status === 'Paga').length;
+                      const totalInstallments = sale.num_installments || 1;
+                      return (
+                        <div key={sale.id} className="glass-card p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium">
+                                R$ {Number(sale.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  {totalInstallments > 1 ? `${totalInstallments}x de R$ ${(Number(sale.total) / totalInstallments).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'À vista'}
+                                </span>
+                              </p>
+                              <p className="text-xs text-muted-foreground">{new Date(sale.created_at).toLocaleDateString('pt-BR')} · {sale.payment_method || 'N/A'}</p>
+                            </div>
+                            <Badge variant="secondary" className={cn("text-[10px]",
+                              sale.status === 'Concluída' ? 'bg-success/10 text-success' :
+                              sale.status === 'Pendente' ? 'bg-warning/10 text-warning' : 'bg-secondary'
+                            )}>{sale.status}</Badge>
+                          </div>
+                          {/* Items */}
+                          <div className="text-xs text-muted-foreground">
+                            {(sale.sale_items || []).map((item: any) => (
+                              <span key={item.id} className="mr-2">{item.product_name} ({item.quantity}x)</span>
+                            ))}
+                          </div>
+                          {/* Installments progress */}
+                          {totalInstallments > 1 && (
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(paidInstallments / totalInstallments) * 100}%` }} />
+                              </div>
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap">{paidInstallments}/{totalInstallments} pagas</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nenhuma compra registrada</p>
+                )}
+              </div>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
 
