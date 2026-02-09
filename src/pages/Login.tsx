@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCompany } from '@/contexts/CompanyContext';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, ArrowRight, Hexagon } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -11,6 +12,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
+  const { companyName } = useCompany();
   const navigate = useNavigate();
 
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
@@ -58,13 +60,13 @@ export default function Login() {
           </div>
 
           <div className="relative z-10">
-            <p className="text-sm font-semibold tracking-[0.2em] text-muted-foreground mb-6 uppercase flex items-center gap-2">
+             <p className="text-sm font-semibold tracking-[0.2em] text-muted-foreground mb-6 uppercase flex items-center gap-2">
               <span className="w-4 h-[2px] bg-primary inline-block" />
-              Store Manager v1.0
+              {companyName}
             </p>
             <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-3">
               Gerencie sua<br />
-              <span className="text-primary">Loja.</span>
+              <span className="text-primary">{companyName}.</span>
             </h1>
             <p className="text-muted-foreground text-base leading-relaxed max-w-[280px]">
               O sistema inteligente que centraliza estoque, vendas e finanças em um só lugar.

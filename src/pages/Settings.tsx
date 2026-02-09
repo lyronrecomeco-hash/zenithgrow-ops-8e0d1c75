@@ -8,10 +8,12 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCompany } from '@/contexts/CompanyContext';
 
 export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { setCompanyName } = useCompany();
   const [loading, setLoading] = useState(false);
   const [company, setCompany] = useState({ name: 'Minha Loja', cnpj: '', address: '', phone: '', email: '' });
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
@@ -33,6 +35,7 @@ export default function Settings() {
     } else {
       await supabase.from('company_settings').insert(company);
     }
+    setCompanyName(company.name);
     toast({ title: 'Dados da empresa salvos!' });
     setLoading(false);
   };
