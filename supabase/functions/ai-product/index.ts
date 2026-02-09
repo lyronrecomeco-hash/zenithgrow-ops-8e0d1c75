@@ -21,7 +21,16 @@ serve(async (req) => {
           model: "google/gemini-2.5-flash",
           messages: [{
             role: "user",
-            content: `Gere uma descrição comercial curta e profissional (máximo 3 frases) para o produto: "${name}"${brand ? ` da marca "${brand}"` : ''}. Responda APENAS com a descrição, sem aspas, sem título.`
+            content: `Você é um especialista em produtos. Gere uma descrição COMPLETA e REAL para o produto: "${name}"${brand ? ` da marca "${brand}"` : ''}.
+
+A descrição deve conter:
+1. Uma breve introdução comercial (2-3 frases)
+2. Especificações técnicas REAIS e PRECISAS do produto (material, dimensões, peso, capacidade, voltagem, potência, etc — o que for aplicável)
+3. Principais características e diferenciais
+4. Indicações de uso
+
+Use dados reais e precisos. NÃO invente especificações. Se não souber dados exatos, use faixas típicas para esse tipo de produto.
+Formate em texto corrido com parágrafos, sem usar markdown. Responda APENAS com a descrição, sem título.`
           }],
         }),
       });
@@ -31,21 +40,63 @@ serve(async (req) => {
     }
 
     if (action === "image") {
+      // Use AI to search and find real product images from the web
+      const searchQuery = `${name}${brand ? ` ${brand}` : ''} product photo`;
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: "google/gemini-2.5-flash",
+          tools: [{
+            type: "function",
+            function: {
+              name: "return_image_urls",
+              description: "Return up to 3 real product image URLs found on the internet",
+              parameters: {
+                type: "object",
+                properties: {
+                  images: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        url: { type: "string", description: "Direct URL to the product image (must be a real, accessible image URL ending in .jpg, .png, .webp or from a known CDN)" },
+                        source: { type: "string", description: "Source website name" }
+                      },
+                      required: ["url", "source"]
+                    },
+                    maxItems: 3
+                  }
+                },
+                required: ["images"],
+                additionalProperties: false
+              }
+            }
+          }],
+          tool_choice: { type: "function", function: { name: "return_image_urls" } },
           messages: [{
             role: "user",
-            content: `Generate a clean, professional product photo of "${name}"${brand ? ` by "${brand}"` : ''} on a pure white background. The product should be centered, well-lit, and photographed from a slightly elevated angle. No text, no logos, no watermarks. Studio photography style.`
+            content: `Find up to 3 real product images for: "${name}"${brand ? ` by "${brand}"` : ''}. 
+Return ONLY real, publicly accessible image URLs from e-commerce sites, manufacturer sites, or product databases.
+The images should show the actual product clearly on a clean background.
+Prefer high-quality product photos from sources like Amazon, manufacturer websites, or major retailers.`
           }],
-          modalities: ["image", "text"],
         }),
       });
       const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-      return new Response(JSON.stringify({ imageUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      
+      let images: { url: string; source: string }[] = [];
+      try {
+        const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+        if (toolCall?.function?.arguments) {
+          const parsed = JSON.parse(toolCall.function.arguments);
+          images = parsed.images || [];
+        }
+      } catch (e) {
+        console.error("Failed to parse tool call:", e);
+      }
+
+      return new Response(JSON.stringify({ images }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ error: "Invalid action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Warehouse, ArrowUp, AlertTriangle, Plus } from 'lucide-react';
+import { Warehouse, ArrowUp, AlertTriangle, Plus, Package, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 export default function Stock() {
   const [products, setProducts] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ product_id: '', type: 'Entrada', quantity: '' });
   const { toast } = useToast();
@@ -24,7 +23,7 @@ export default function Stock() {
 
   const loadData = async () => {
     const [p, m] = await Promise.all([
-      supabase.from('products').select('*').order('name'),
+      supabase.from('products').select('*, categories(name)').order('name'),
       supabase.from('stock_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(50),
     ]);
     if (p.data) setProducts(p.data);
@@ -50,14 +49,19 @@ export default function Stock() {
   const totalStock = products.reduce((a, p) => a + p.stock, 0);
   const lowStock = products.filter(p => p.stock <= p.min_stock).length;
 
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    (p.brand || '').toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Estoque</h1>
-          <p className="text-muted-foreground text-base mt-1">Controle de movimentação</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Estoque</h1>
+          <p className="text-muted-foreground text-sm sm:text-base mt-1">Controle de movimentação</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Nova Movimentação</Button>
+        <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" />Nova Movimentação</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -75,36 +79,55 @@ export default function Stock() {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="glass-card overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="text-xs font-semibold text-muted-foreground">PRODUTO</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">ESTOQUE</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground hidden sm:table-cell">MÍNIMO</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">STATUS</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map(p => (
-                <TableRow key={p.id} className="border-border/30 hover:bg-secondary/30 transition-colors">
-                  <TableCell className="font-medium text-base">{p.name}</TableCell>
-                  <TableCell className="text-base font-bold">{p.stock}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">{p.min_stock}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={cn("text-xs", p.stock <= p.min_stock ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-success/10 text-success border-success/20')}>
-                      {p.stock <= p.min_stock ? 'Baixo' : 'Normal'}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {products.length === 0 && (
-                <TableRow><TableCell colSpan={4} className="text-center py-12 text-muted-foreground text-base">Nenhum produto cadastrado</TableCell></TableRow>
+      <div className="relative w-full sm:max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input placeholder="Buscar no estoque..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-secondary/50 border-border/50" />
+      </div>
+
+      {/* Stock Cards Grid */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map(p => (
+          <div key={p.id} className="glass-card overflow-hidden">
+            <div className="relative w-full h-32 bg-secondary/30">
+              {p.image_url ? (
+                <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-8 h-8 text-muted-foreground/30" />
+                </div>
               )}
-            </TableBody>
-          </Table>
-        </div>
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "absolute top-2 right-2 text-xs font-bold",
+                  p.stock <= p.min_stock
+                    ? 'bg-destructive/90 text-destructive-foreground border-0'
+                    : 'bg-success/90 text-white border-0'
+                )}
+              >
+                {p.stock <= p.min_stock ? 'Baixo' : 'Normal'}
+              </Badge>
+            </div>
+            <div className="p-4 space-y-2">
+              <p className="font-semibold text-base truncate">{p.name}</p>
+              {(p.categories as any)?.name && (
+                <p className="text-xs text-muted-foreground">{(p.categories as any).name}</p>
+              )}
+              <div className="flex items-center justify-between pt-1">
+                <div>
+                  <p className="text-2xl font-bold">{p.stock}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">em estoque</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Mín: {p.min_stock}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="col-span-full glass-card p-12 text-center text-muted-foreground text-base">Nenhum produto encontrado</div>
+        )}
       </motion.div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

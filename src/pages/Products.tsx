@@ -2,12 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Pencil, Trash2, Package, Sparkles, Upload, ImageIcon, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Package, Sparkles, Upload, ChevronRight, ChevronLeft, Loader2, ImageIcon, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +31,7 @@ export default function Products() {
   const [step, setStep] = useState<Step>('data');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiImageLoading, setAiImageLoading] = useState(false);
+  const [aiImages, setAiImages] = useState<{ url: string; source: string }[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -54,8 +54,13 @@ export default function Products() {
   );
 
   const openCreate = () => {
+    if (categories.length === 0) {
+      toast({ title: 'Crie uma categoria primeiro', description: 'Vá em Categorias e adicione pelo menos uma antes de criar produtos.', variant: 'destructive' });
+      return;
+    }
     setEditProduct(null);
     setForm({ name: '', brand: '', price: '', code: '', category_id: '', description: '', image_url: '' });
+    setAiImages([]);
     setStep('data');
     setDialogOpen(true);
   };
@@ -63,6 +68,7 @@ export default function Products() {
   const openEdit = (p: any) => {
     setEditProduct(p);
     setForm({ name: p.name, brand: p.brand || '', price: String(p.price), code: p.code, category_id: p.category_id || '', description: p.description || '', image_url: p.image_url || '' });
+    setAiImages([]);
     setStep('data');
     setDialogOpen(true);
   };
@@ -83,7 +89,7 @@ export default function Products() {
       if (error) throw error;
       if (data?.description) {
         setForm(f => ({ ...f, description: data.description }));
-        toast({ title: 'Descrição gerada com IA!' });
+        toast({ title: 'Descrição técnica gerada com IA!' });
       }
     } catch (err: any) {
       toast({ title: 'Erro ao gerar descrição', description: err.message, variant: 'destructive' });
@@ -91,29 +97,30 @@ export default function Products() {
     setAiLoading(false);
   };
 
-  const generateImage = async () => {
+  const searchImages = async () => {
     if (!form.name) { toast({ title: 'Preencha o nome do produto primeiro', variant: 'destructive' }); return; }
     setAiImageLoading(true);
+    setAiImages([]);
     try {
       const { data, error } = await supabase.functions.invoke('ai-product', {
         body: { action: 'image', name: form.name, brand: form.brand },
       });
       if (error) throw error;
-      if (data?.imageUrl) {
-        // Upload base64 to storage
-        const base64Data = data.imageUrl.split(',')[1];
-        const byteArray = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-        const fileName = `${Date.now()}-${form.name.replace(/\s+/g, '-').toLowerCase()}.png`;
-        const { error: uploadError } = await supabase.storage.from('product-images').upload(fileName, byteArray, { contentType: 'image/png' });
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
-        setForm(f => ({ ...f, image_url: urlData.publicUrl }));
-        toast({ title: 'Imagem gerada com IA!' });
+      if (data?.images && data.images.length > 0) {
+        setAiImages(data.images);
+        toast({ title: `${data.images.length} imagem(ns) encontrada(s)!` });
+      } else {
+        toast({ title: 'Nenhuma imagem encontrada', variant: 'destructive' });
       }
     } catch (err: any) {
-      toast({ title: 'Erro ao gerar imagem', description: err.message, variant: 'destructive' });
+      toast({ title: 'Erro ao buscar imagens', description: err.message, variant: 'destructive' });
     }
     setAiImageLoading(false);
+  };
+
+  const selectAiImage = (url: string) => {
+    setForm(f => ({ ...f, image_url: url }));
+    toast({ title: 'Imagem selecionada!' });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,12 +142,16 @@ export default function Products() {
 
   const handleSave = async () => {
     if (!form.name || !form.price) return;
+    if (!form.category_id) {
+      toast({ title: 'Selecione uma categoria', variant: 'destructive' });
+      return;
+    }
     const data = {
       name: form.name,
       brand: form.brand,
       price: Number(form.price),
       code: form.code || `PROD-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}`,
-      category_id: form.category_id || null,
+      category_id: form.category_id,
       description: form.description,
       image_url: form.image_url,
     };
@@ -164,7 +175,7 @@ export default function Products() {
   };
 
   const canGoNext = () => {
-    if (step === 'data') return !!form.name && !!form.price;
+    if (step === 'data') return !!form.name && !!form.price && !!form.category_id;
     return true;
   };
 
@@ -193,93 +204,51 @@ export default function Products() {
         <Input placeholder="Buscar produtos..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-secondary/50 border-border/50" />
       </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        {/* Mobile card view */}
-        <div className="block sm:hidden space-y-3">
-          {filtered.map((p) => (
-            <div key={p.id} className="glass-card p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} className="w-14 h-14 rounded-xl object-cover border border-border/30" />
-                ) : (
-                  <div className="w-14 h-14 rounded-xl bg-secondary/50 flex items-center justify-center">
-                    <Package className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-base truncate">{p.name}</p>
-                  <p className="text-sm text-muted-foreground">{p.brand || '—'}</p>
-                  <p className="font-mono text-xs text-muted-foreground mt-0.5">{p.code}</p>
+      {/* Product Cards Grid */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map((p) => (
+          <div key={p.id} className="glass-card overflow-hidden group hover:border-primary/20 transition-all">
+            {/* Image */}
+            <div className="relative w-full h-40 bg-secondary/30">
+              {p.image_url ? (
+                <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-10 h-10 text-muted-foreground/30" />
+                </div>
+              )}
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="secondary" size="icon" className="h-7 w-7 bg-background/80 backdrop-blur-sm" onClick={() => openEdit(p)}><Pencil className="w-3 h-3" /></Button>
+                <Button variant="secondary" size="icon" className="h-7 w-7 bg-background/80 backdrop-blur-sm text-destructive" onClick={() => setDeleteId(p.id)}><Trash2 className="w-3 h-3" /></Button>
+              </div>
+              {p.stock <= p.min_stock && (
+                <Badge variant="destructive" className="absolute top-2 left-2 text-[10px] bg-destructive/90">Estoque Baixo</Badge>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="p-4 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-semibold text-base truncate">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">{p.brand || 'Sem marca'} · {p.code}</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <p className="text-base font-medium">R$ {Number(p.price).toLocaleString('pt-BR')}</p>
-                <div className="flex items-center gap-2">
-                  <Badge variant={p.stock <= p.min_stock ? 'destructive' : 'secondary'} className={cn("text-xs", p.stock <= p.min_stock ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary')}>
-                    {p.stock} un.
-                  </Badge>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}><Pencil className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeleteId(p.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
-                </div>
+              {(p.categories as any)?.name && (
+                <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">{(p.categories as any).name}</Badge>
+              )}
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-lg font-bold">R$ {Number(p.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <Badge variant="secondary" className={cn("text-xs", p.stock <= p.min_stock ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary')}>
+                  {p.stock} un.
+                </Badge>
               </div>
             </div>
-          ))}
-          {filtered.length === 0 && (
-            <div className="glass-card p-12 text-center text-muted-foreground">Nenhum produto encontrado</div>
-          )}
-        </div>
-
-        {/* Desktop table view */}
-        <div className="hidden sm:block glass-card overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="text-xs font-semibold text-muted-foreground w-10"></TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">CÓDIGO</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">PRODUTO</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground hidden md:table-cell">MARCA</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">PREÇO</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">ESTOQUE</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground hidden lg:table-cell">CATEGORIA</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground text-right">AÇÕES</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((p) => (
-                <TableRow key={p.id} className="border-border/30 hover:bg-secondary/30 transition-colors">
-                  <TableCell className="w-10 p-2">
-                    {p.image_url ? (
-                      <img src={p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-secondary/50 flex items-center justify-center">
-                        <Package className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{p.code}</TableCell>
-                  <TableCell className="font-medium text-base">{p.name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{p.brand}</TableCell>
-                  <TableCell className="text-base font-medium">R$ {Number(p.price).toLocaleString('pt-BR')}</TableCell>
-                  <TableCell>
-                    <Badge variant={p.stock <= p.min_stock ? 'destructive' : 'secondary'} className={cn("text-xs", p.stock <= p.min_stock ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary')}>
-                      {p.stock} un.
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">{(p.categories as any)?.name || '—'}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(p)}><Pencil className="w-3.5 h-3.5" /></Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeleteId(p.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground text-base">Nenhum produto encontrado</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="col-span-full glass-card p-12 text-center text-muted-foreground">Nenhum produto encontrado</div>
+        )}
       </motion.div>
 
       {/* Multi-step Create/Edit Dialog */}
@@ -289,8 +258,8 @@ export default function Products() {
             <DialogTitle className="text-lg">{editProduct ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
             <DialogDescription>
               {step === 'data' && 'Preencha os dados básicos do produto'}
-              {step === 'description' && 'Descrição do produto — pode gerar com IA'}
-              {step === 'images' && 'Adicione imagens do produto'}
+              {step === 'description' && 'Descrição completa com especificações técnicas'}
+              {step === 'images' && 'Adicione imagens reais do produto'}
             </DialogDescription>
           </DialogHeader>
 
@@ -338,13 +307,14 @@ export default function Products() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Categoria</Label>
+                  <Label>Categoria *</Label>
                   <Select value={form.category_id} onValueChange={v => setForm(f => ({ ...f, category_id: v }))}>
-                    <SelectTrigger className="bg-secondary/50"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger className="bg-secondary/50"><SelectValue placeholder="Selecione uma categoria" /></SelectTrigger>
                     <SelectContent>
                       {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                  {categories.length === 0 && <p className="text-xs text-destructive">Nenhuma categoria cadastrada. Crie uma primeiro.</p>}
                 </div>
               </div>
             )}
@@ -354,7 +324,7 @@ export default function Products() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Descrição</Label>
+                    <Label>Descrição Técnica</Label>
                     <Button variant="outline" size="sm" onClick={generateDescription} disabled={aiLoading} className="gap-1.5">
                       {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary" />}
                       Gerar com IA
@@ -363,16 +333,16 @@ export default function Products() {
                   <Textarea
                     value={form.description}
                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                    className="bg-secondary/50 min-h-[160px]"
-                    placeholder="Descreva o produto ou clique em 'Gerar com IA'..."
+                    className="bg-secondary/50 min-h-[200px]"
+                    placeholder="Clique em 'Gerar com IA' para uma descrição completa com especificações técnicas reais..."
                   />
                 </div>
                 {aiLoading && (
                   <div className="glass-card p-4 flex items-center gap-3">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     <div>
-                      <p className="text-sm font-medium">Gerando descrição...</p>
-                      <p className="text-xs text-muted-foreground">A IA está criando uma descrição comercial para "{form.name}"</p>
+                      <p className="text-sm font-medium">Gerando descrição completa...</p>
+                      <p className="text-xs text-muted-foreground">A IA está pesquisando especificações técnicas reais de "{form.name}"</p>
                     </div>
                   </div>
                 )}
@@ -382,6 +352,7 @@ export default function Products() {
             {/* Step 3: Images */}
             {step === 'images' && (
               <div className="space-y-4">
+                {/* Current selected image */}
                 {form.image_url && (
                   <div className="relative rounded-xl overflow-hidden border border-border/30">
                     <img src={form.image_url} alt="Produto" className="w-full h-48 object-contain bg-secondary/20" />
@@ -391,11 +362,12 @@ export default function Products() {
                       className="absolute top-2 right-2 h-7 text-xs"
                       onClick={() => setForm(f => ({ ...f, image_url: '' }))}
                     >
-                      Remover
+                      <X className="w-3 h-3 mr-1" /> Remover
                     </Button>
                   </div>
                 )}
 
+                {/* Upload / AI buttons */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -410,14 +382,14 @@ export default function Products() {
                   </button>
 
                   <button
-                    onClick={generateImage}
+                    onClick={searchImages}
                     disabled={aiImageLoading || !form.name}
                     className="glass-card p-6 flex flex-col items-center gap-3 hover:border-primary/30 transition-all cursor-pointer text-center"
                   >
                     {aiImageLoading ? <Loader2 className="w-8 h-8 text-primary animate-spin" /> : <Sparkles className="w-8 h-8 text-primary" />}
                     <div>
-                      <p className="font-medium text-sm">Gerar com IA</p>
-                      <p className="text-xs text-muted-foreground mt-1">Imagem automática</p>
+                      <p className="font-medium text-sm">Buscar com IA</p>
+                      <p className="text-xs text-muted-foreground mt-1">Até 3 imagens reais</p>
                     </div>
                   </button>
                 </div>
@@ -428,8 +400,35 @@ export default function Products() {
                   <div className="glass-card p-4 flex items-center gap-3">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     <div>
-                      <p className="text-sm font-medium">Gerando imagem...</p>
-                      <p className="text-xs text-muted-foreground">A IA está criando uma foto profissional de "{form.name}"</p>
+                      <p className="text-sm font-medium">Buscando imagens reais...</p>
+                      <p className="text-xs text-muted-foreground">Extraindo fotos de "{form.name}" da internet</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI found images */}
+                {aiImages.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm">Imagens encontradas — clique para selecionar</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {aiImages.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => selectAiImage(img.url)}
+                          className={cn(
+                            "relative rounded-xl overflow-hidden border-2 transition-all h-28 bg-secondary/20",
+                            form.image_url === img.url ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-primary/40"
+                          )}
+                        >
+                          <img src={img.url} alt={`Opção ${i + 1}`} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
+                          <span className="absolute bottom-1 left-1 right-1 text-[9px] text-muted-foreground bg-background/80 backdrop-blur-sm rounded px-1 py-0.5 truncate">{img.source}</span>
+                          {form.image_url === img.url && (
+                            <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                              <Badge className="text-[10px]">Selecionada</Badge>
+                            </div>
+                          )}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
