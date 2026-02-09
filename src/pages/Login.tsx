@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Store, Loader2, AlertCircle, Lock } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowRight, Hexagon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Login() {
@@ -31,88 +29,89 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left - Branding */}
-      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden items-center justify-center p-12">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-accent/5" />
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+    <div className="flex min-h-screen items-center justify-center p-4 relative overflow-hidden"
+      style={{ background: 'radial-gradient(ellipse at 50% 100%, hsl(260 60% 15% / 0.5), hsl(220 25% 6%) 70%)' }}>
+      
+      {/* Background glow effects */}
+      <div className="absolute top-1/2 left-1/3 w-[600px] h-[600px] rounded-full opacity-20 blur-[120px]"
+        style={{ background: 'hsl(260, 80%, 50%)' }} />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full opacity-10 blur-[100px]"
+        style={{ background: 'hsl(199, 89%, 48%)' }} />
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative text-center z-10"
-        >
-          <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-lg shadow-primary/5">
-            <Store className="w-10 h-10 text-primary" />
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Store Manager</h1>
-          <p className="text-muted-foreground text-lg max-w-sm mx-auto leading-relaxed">
-            Sistema completo de gerenciamento empresarial. Controle total do seu negócio em um só lugar.
-          </p>
-          <div className="mt-12 flex items-center justify-center gap-8 text-muted-foreground">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">ERP</p>
-              <p className="text-xs mt-1">Integrado</p>
-            </div>
-            <div className="w-px h-10 bg-border" />
-            <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">100%</p>
-              <p className="text-xs mt-1">Seguro</p>
-            </div>
-            <div className="w-px h-10 bg-border" />
-            <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">24/7</p>
-              <p className="text-xs mt-1">Disponível</p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Right - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-sm"
-        >
-          <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-              <Store className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xl font-bold">Store Manager</span>
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="w-full max-w-[900px] grid grid-cols-1 lg:grid-cols-2 rounded-2xl overflow-hidden"
+        style={{
+          background: 'hsl(0 0% 100% / 0.03)',
+          border: '1px solid hsl(0 0% 100% / 0.08)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        {/* Left - Branding */}
+        <div className="relative p-10 lg:p-12 flex flex-col justify-center overflow-hidden min-h-[320px] lg:min-h-[520px]">
+          {/* Animated blob */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full opacity-40 blur-[60px]"
+              style={{ background: 'linear-gradient(135deg, hsl(260, 80%, 50%), hsl(199, 89%, 48%))' }} />
+            <div className="absolute bottom-0 left-0 w-[200px] h-[200px] rounded-full opacity-20 blur-[50px]"
+              style={{ background: 'hsl(320, 70%, 50%)' }} />
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold tracking-tight">Bem-vindo de volta</h2>
-            <p className="text-muted-foreground mt-2 text-sm">Entre com suas credenciais para acessar o painel</p>
+          <div className="relative z-10">
+            <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground mb-6 uppercase flex items-center gap-2">
+              <span className="w-4 h-[2px] bg-primary inline-block" />
+              Store Manager v1.0
+            </p>
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-3">
+              Gerencie sua<br />
+              <span className="text-primary">Loja.</span>
+            </h1>
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-[280px]">
+              O sistema inteligente que centraliza estoque, vendas e finanças em um só lugar.
+            </p>
+          </div>
+        </div>
+
+        {/* Right - Login Form */}
+        <div className="p-10 lg:p-12 flex flex-col justify-center"
+          style={{
+            borderLeft: '1px solid hsl(0 0% 100% / 0.06)',
+          }}>
+          <div className="flex justify-center mb-8">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ background: 'hsl(0 0% 100% / 0.05)', border: '1px solid hsl(0 0% 100% / 0.1)' }}>
+              <Hexagon className="w-6 h-6 text-primary" />
+            </div>
+          </div>
+
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-bold tracking-tight">Acesse sua conta</h2>
+            <p className="text-muted-foreground mt-1.5 text-sm">Bem-vindo de volta. Digite seus dados para entrar.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <Input
-                id="email"
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">E-mail</label>
+              <input
                 type="email"
-                placeholder="admin@exemplo.com"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-11 bg-secondary/50 border-border/50 focus:border-primary/50 transition-colors"
+                className="w-full h-12 px-4 rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all glass-input"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
-              <Input
-                id="password"
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">Senha</label>
+              <input
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-11 bg-secondary/50 border-border/50 focus:border-primary/50 transition-colors"
+                className="w-full h-12 px-4 rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all glass-input"
               />
             </div>
 
@@ -120,14 +119,15 @@ export default function Login() {
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-lg"
+                className="flex items-center gap-2 text-destructive text-sm p-3 rounded-xl"
+                style={{ background: 'hsl(0 72% 51% / 0.1)', border: '1px solid hsl(0 72% 51% / 0.2)' }}
               >
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </motion.div>
             )}
 
-            <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+            <Button type="submit" className="w-full h-12 rounded-xl font-semibold text-sm gradient-primary border-0 hover:opacity-90 transition-opacity" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -135,18 +135,18 @@ export default function Login() {
                 </>
               ) : (
                 <>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Entrar no sistema
+                  ENTRAR
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}
             </Button>
           </form>
 
           <p className="text-center text-xs text-muted-foreground mt-8">
-            Acesso restrito a administradores autorizados
+            Dificuldades no acesso? Contatar o suporte
           </p>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ const navItems = [
   { label: 'Estoque', icon: Warehouse, path: '/stock' },
   { label: 'Clientes', icon: Users, path: '/clients' },
   { label: 'Vendas', icon: ShoppingCart, path: '/sales' },
-  { label: 'Parcelas', icon: CreditCard, path: '/installments' },
+  { label: 'Pagamentos', icon: CreditCard, path: '/installments' },
   { label: 'Financeiro', icon: DollarSign, path: '/financial' },
   { label: 'Notas Fiscais', icon: Receipt, path: '/invoices' },
   { label: 'Relatórios', icon: BarChart3, path: '/reports' },

@@ -1,20 +1,19 @@
 import {
   DollarSign, ShoppingCart, AlertTriangle, Clock,
-  TrendingUp, TrendingDown, Package
+  TrendingUp, TrendingDown, Package, Users, CreditCard, ArrowUpRight
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid
+  LineChart, Line, XAxis, YAxis,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, AreaChart, Area
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const metrics = [
-  { label: 'Faturamento Mensal', value: 'R$ 47.580', change: '+12.5%', up: true, icon: DollarSign, bg: 'bg-success/10', iconColor: 'text-success' },
-  { label: 'Total de Vendas', value: '156', change: '+8.2%', up: true, icon: ShoppingCart, bg: 'bg-primary/10', iconColor: 'text-primary' },
-  { label: 'Parcelas Pendentes', value: '23', change: '5 vencidas', up: false, icon: Clock, bg: 'bg-warning/10', iconColor: 'text-warning' },
-  { label: 'Estoque Baixo', value: '7 itens', change: 'Atenção', up: false, icon: AlertTriangle, bg: 'bg-destructive/10', iconColor: 'text-destructive' },
+  { label: 'Faturamento Mensal', value: 'R$ 47.580', change: '+12.5%', up: true, icon: DollarSign, iconColor: 'text-success' },
+  { label: 'Total de Vendas', value: '156', change: '+8.2%', up: true, icon: ShoppingCart, iconColor: 'text-primary' },
+  { label: 'Pagamentos Pendentes', value: '23', change: '5 vencidas', up: false, icon: Clock, iconColor: 'text-warning' },
+  { label: 'Estoque Baixo', value: '7 itens', change: 'Atenção', up: false, icon: AlertTriangle, iconColor: 'text-destructive' },
 ];
 
 const salesData = [
@@ -27,15 +26,6 @@ const salesData = [
   { month: 'Jul', vendas: 24300 },
 ];
 
-const revenueData = [
-  { month: 'Jan', entrada: 18000, saida: 12000 },
-  { month: 'Fev', entrada: 22000, saida: 14000 },
-  { month: 'Mar', entrada: 19500, saida: 11000 },
-  { month: 'Abr', entrada: 25000, saida: 15000 },
-  { month: 'Mai', entrada: 28000, saida: 16000 },
-  { month: 'Jun', entrada: 24000, saida: 13500 },
-];
-
 const categoryData = [
   { name: 'Eletrônicos', value: 35 },
   { name: 'Vestuário', value: 25 },
@@ -45,25 +35,31 @@ const categoryData = [
 ];
 
 const CHART_COLORS = [
-  'hsl(213, 94%, 56%)',
+  'hsl(260, 80%, 60%)',
   'hsl(199, 89%, 48%)',
   'hsl(152, 69%, 41%)',
   'hsl(38, 92%, 50%)',
   'hsl(0, 72%, 51%)',
 ];
 
-const recentSales = [
-  { client: 'Maria Silva', product: 'Notebook Dell', value: 'R$ 4.200', date: 'Hoje' },
-  { client: 'João Santos', product: 'iPhone 15', value: 'R$ 5.800', date: 'Hoje' },
-  { client: 'Ana Costa', product: 'TV Samsung 55"', value: 'R$ 3.100', date: 'Ontem' },
-  { client: 'Pedro Lima', product: 'Air Fryer', value: 'R$ 450', date: 'Ontem' },
-  { client: 'Lucia Ferreira', product: 'Console PS5', value: 'R$ 3.900', date: '2 dias' },
+const topProducts = [
+  { name: 'iPhone 15 Pro', sales: 42, revenue: 'R$ 167.580' },
+  { name: 'Notebook Dell i7', sales: 28, revenue: 'R$ 117.600' },
+  { name: 'TV Samsung 55"', sales: 19, revenue: 'R$ 58.900' },
+  { name: 'Air Fryer Philips', sales: 35, revenue: 'R$ 15.750' },
+  { name: 'Console PS5', sales: 15, revenue: 'R$ 58.500' },
+];
+
+const quickStats = [
+  { label: 'Clientes Ativos', value: '342', icon: Users },
+  { label: 'Produtos Cadastrados', value: '1.284', icon: Package },
+  { label: 'Ticket Médio', value: 'R$ 305', icon: CreditCard },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-xl">
+    <div className="glass-card-strong px-3 py-2 shadow-xl">
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       {payload.map((p: any, i: number) => (
         <p key={i} className="text-sm font-medium" style={{ color: p.color }}>
@@ -91,56 +87,54 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08, duration: 0.4 }}
           >
-            <Card className="border-border/50 bg-card/80 hover:bg-card transition-colors">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", m.bg)}>
-                    <m.icon className={cn("w-5 h-5", m.iconColor)} />
-                  </div>
-                  <span className={cn(
-                    "text-xs font-medium flex items-center gap-1 px-2 py-1 rounded-full",
-                    m.up ? "text-success bg-success/10" : "text-warning bg-warning/10"
-                  )}>
-                    {m.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {m.change}
-                  </span>
+            <div className="glass-card p-5 hover:border-primary/20 transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10">
+                  <m.icon className={cn("w-5 h-5", m.iconColor)} />
                 </div>
-                <p className="text-2xl font-bold tracking-tight">{m.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{m.label}</p>
-              </CardContent>
-            </Card>
+                <span className={cn(
+                  "text-xs font-medium flex items-center gap-1 px-2 py-1 rounded-full",
+                  m.up ? "text-success bg-success/10" : "text-warning bg-warning/10"
+                )}>
+                  {m.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {m.change}
+                </span>
+              </div>
+              <p className="text-2xl font-bold tracking-tight">{m.value}</p>
+              <p className="text-xs text-muted-foreground mt-1">{m.label}</p>
+            </div>
           </motion.div>
         ))}
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-        {/* Sales Chart */}
-        <Card className="lg:col-span-4 border-border/50 bg-card/80">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Vendas por Mês</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <motion.div className="lg:col-span-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+          <div className="glass-card p-6">
+            <h3 className="text-sm font-semibold mb-4">Vendas por Mês</h3>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(222, 14%, 14%)" />
+                <AreaChart data={salesData}>
+                  <defs>
+                    <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(260, 80%, 60%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(260, 80%, 60%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 14%)" />
                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 12, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Line type="monotone" dataKey="vendas" name="Vendas" stroke="hsl(213, 94%, 56%)" strokeWidth={2.5} dot={{ r: 4, fill: 'hsl(213, 94%, 56%)' }} activeDot={{ r: 6 }} />
-                </LineChart>
+                  <Area type="monotone" dataKey="vendas" name="Vendas" stroke="hsl(260, 80%, 60%)" strokeWidth={2.5} fill="url(#salesGrad)" dot={{ r: 4, fill: 'hsl(260, 80%, 60%)' }} activeDot={{ r: 6 }} />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
 
-        {/* Category Pie */}
-        <Card className="lg:col-span-3 border-border/50 bg-card/80">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Vendas por Categoria</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <motion.div className="lg:col-span-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+          <div className="glass-card p-6">
+            <h3 className="text-sm font-semibold mb-4">Vendas por Categoria</h3>
             <div className="h-[280px] flex items-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -161,58 +155,51 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Revenue + Recent Sales */}
+      {/* Top Products + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-        <Card className="lg:col-span-4 border-border/50 bg-card/80">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Fluxo de Caixa</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(222, 14%, 14%)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: 'hsl(215, 14%, 50%)' }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="entrada" name="Entradas" fill="hsl(152, 69%, 41%)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="saida" name="Saídas" fill="hsl(0, 72%, 51%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+        <motion.div className="lg:col-span-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold">Produtos Mais Vendidos</h3>
+              <span className="text-xs text-muted-foreground">Este mês</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-3 border-border/50 bg-card/80">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Vendas Recentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentSales.map((sale, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Package className="w-3.5 h-3.5 text-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{sale.client}</p>
-                      <p className="text-xs text-muted-foreground truncate">{sale.product}</p>
+            <div className="space-y-3">
+              {topProducts.map((p, i) => (
+                <div key={p.name} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/30 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">{i + 1}</span>
+                    <div>
+                      <p className="text-sm font-medium">{p.name}</p>
+                      <p className="text-xs text-muted-foreground">{p.sales} vendas</p>
                     </div>
                   </div>
-                  <div className="text-right shrink-0 ml-3">
-                    <p className="text-sm font-semibold">{sale.value}</p>
-                    <p className="text-xs text-muted-foreground">{sale.date}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{p.revenue}</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
+
+        <motion.div className="lg:col-span-3 space-y-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+          {quickStats.map((stat) => (
+            <div key={stat.label} className="glass-card p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                <stat.icon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </div>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </div>
   );
