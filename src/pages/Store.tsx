@@ -7,6 +7,7 @@ import HeroBanner from '@/components/store/HeroBanner';
 import CategoryFilter from '@/components/store/CategoryFilter';
 import ProductCard from '@/components/store/ProductCard';
 import ProductModal from '@/components/store/ProductModal';
+import FeaturedSlider from '@/components/store/FeaturedSlider';
 import StoreFooter from '@/components/store/StoreFooter';
 
 interface Product {
@@ -102,11 +103,7 @@ export default function Store() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <StoreHeader companyName={company.name} />
-      <HeroBanner
-        companyName={company.name}
-        products={products}
-        onProductSelect={(p) => setSelectedProduct(p as Product)}
-      />
+      <HeroBanner companyName={company.name} />
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16 space-y-6">
         {/* Search + Filter Toggle */}
@@ -235,6 +232,11 @@ export default function Store() {
           </div>
         )}
       </main>
+
+      <FeaturedSlider
+        products={products}
+        onProductSelect={(p) => setSelectedProduct(p as Product)}
+      />
 
       <ProductModal
         product={selectedProduct}

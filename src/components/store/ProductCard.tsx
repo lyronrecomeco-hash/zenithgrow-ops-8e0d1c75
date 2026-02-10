@@ -31,7 +31,7 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.3 }}
       onClick={() => onSelect(product)}
-      className="glass-card overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-300 flex flex-col"
+      className="glass-card overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-300 flex flex-col rounded-xl"
     >
       <div className="aspect-square bg-secondary/50 flex items-center justify-center overflow-hidden">
         {product.image_url ? (
@@ -42,30 +42,39 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
             loading="lazy"
           />
         ) : (
-          <Package className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/30" />
+          <Package className="w-10 h-10 sm:w-14 sm:h-14 text-muted-foreground/30" />
         )}
       </div>
 
-      <div className="p-3 sm:p-4 space-y-1.5 sm:space-y-2 flex flex-col flex-1">
+      <div className="p-2.5 sm:p-3.5 flex flex-col flex-1 gap-1.5">
         {product.brand && (
-          <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider truncate">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate leading-none">
             {product.brand}
           </span>
         )}
-        <h3 className="font-semibold text-foreground line-clamp-2 leading-snug text-sm sm:text-base">
+
+        <h3 className="font-semibold text-foreground line-clamp-2 leading-tight text-xs sm:text-sm">
           {product.name}
         </h3>
-        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Cód: {product.code}</p>
-        <div className="flex items-center justify-between pt-1 mt-auto">
-          <span className="text-base sm:text-lg font-bold text-primary">
+
+        <p className="text-[10px] text-muted-foreground truncate leading-none">
+          Cód: {product.code}
+        </p>
+
+        <div className="flex items-end justify-between gap-1 mt-auto pt-1.5">
+          <span className="text-sm sm:text-base font-bold text-primary leading-none">
             {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </span>
-          <Badge variant={inStock ? 'default' : 'destructive'} className="text-[9px] sm:text-[10px] px-1.5 py-0.5">
+          <Badge
+            variant={inStock ? 'default' : 'destructive'}
+            className="text-[8px] sm:text-[9px] px-1.5 py-0.5 leading-none shrink-0"
+          >
             {inStock ? 'Disponível' : 'Esgotado'}
           </Badge>
         </div>
-        <button className="w-full mt-1.5 sm:mt-2 flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 rounded-lg bg-primary/10 text-primary text-xs sm:text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-all">
-          <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+
+        <button className="w-full mt-1.5 flex items-center justify-center gap-1.5 py-1.5 sm:py-2 rounded-lg bg-primary/10 text-primary text-[11px] sm:text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-all">
+          <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           Ver Detalhes
         </button>
       </div>
