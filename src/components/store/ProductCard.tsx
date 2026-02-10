@@ -24,12 +24,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const formattedPrice = product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.25 }}
+    <div
       onClick={() => navigate(`/produto/${product.id}`)}
       className="bg-card border border-border/70 overflow-hidden cursor-pointer group hover:border-primary/50 hover:shadow-lg hover:shadow-primary/15 transition-all duration-200 flex flex-col rounded-xl relative"
     >
