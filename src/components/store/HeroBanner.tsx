@@ -82,34 +82,32 @@ export default function HeroBanner({ companyName, products = [], onProductSelect
                   className="cursor-pointer"
                   onClick={() => onProductSelect?.(product)}
                 >
-                  {/* MOBILE: vertical layout (image top, info bottom) */}
-                  <div className="flex flex-col sm:hidden">
-                    <div className="w-full aspect-[16/9] bg-secondary/20 flex items-center justify-center overflow-hidden">
+                  {/* MOBILE: full-width ML-style layout */}
+                  <div className="relative sm:hidden">
+                    <div className="w-full aspect-[2/1] bg-secondary/20 flex items-center justify-center overflow-hidden">
                       {product.image_url ? (
                         <img
                           src={product.image_url}
                           alt={product.name}
-                          className="w-full h-full object-contain p-4"
+                          className="w-full h-full object-contain"
                         />
                       ) : (
-                        <Package className="w-10 h-10 text-muted-foreground/30" />
+                        <Package className="w-12 h-12 text-muted-foreground/30" />
                       )}
                     </div>
-                    <div className="p-3 space-y-1 border-t border-border/20">
+                    {/* Overlay gradient with product info */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 pb-3 pt-8">
                       {product.brand && (
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        <span className="text-[10px] text-white/70 uppercase tracking-wider">
                           {product.brand}
                         </span>
                       )}
-                      <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-snug">
+                      <h3 className="text-sm font-bold text-white line-clamp-1 leading-snug">
                         {product.name}
                       </h3>
-                      <p className="text-xl font-bold text-primary">
+                      <p className="text-xl font-extrabold text-white mt-0.5">
                         {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </p>
-                      <span className="inline-block text-[10px] font-medium text-green-400">
-                        Disponível
-                      </span>
                     </div>
                   </div>
 
