@@ -47,7 +47,7 @@ export default function ProductDetail() {
   useEffect(() => {
     const load = async () => {
       const [prodRes, compRes] = await Promise.all([
-        supabase.from('products').select('id,name,code,price,image_url,stock,brand,description,category_id').eq('id', id!).maybeSingle(),
+        supabase.from('products').select('id,name,code,price,image_url,stock,brand,description,category_id').eq('code', code!).maybeSingle(),
         supabase.from('company_settings').select('name,phone').limit(1).maybeSingle(),
       ]);
       if (prodRes.data) setProduct(prodRes.data);
