@@ -77,9 +77,22 @@ export default function OrderForm({ open, onClose, whatsappNumber }: OrderFormPr
 
         {/* Cart items */}
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-6 gap-2">
-            <ShoppingCart className="w-10 h-10 text-muted-foreground/20" />
-            <p className="text-sm text-muted-foreground">Seu carrinho está vazio.</p>
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <div className="w-16 h-16 rounded-full bg-secondary/40 flex items-center justify-center">
+              <ShoppingCart className="w-8 h-8 text-muted-foreground/30" />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-sm font-semibold text-foreground">Carrinho vazio</p>
+              <p className="text-xs text-muted-foreground">Adicione produtos para fazer seu pedido.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 mt-1 text-xs border-primary/30 text-primary hover:bg-primary/10"
+              onClick={() => { onClose(); navigate('/loja'); }}
+            >
+              Ver produtos <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
           </div>
         ) : (
           <div className="space-y-2 max-h-48 overflow-y-auto">
