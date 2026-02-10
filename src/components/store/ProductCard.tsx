@@ -86,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* CTA Button */}
         <button
           className="mt-auto pt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
-          onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.id}`); }}
+          onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.code}`); }}
         >
           <Eye className="w-3.5 h-3.5" />
           Ver detalhes
