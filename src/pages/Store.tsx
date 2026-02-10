@@ -2,12 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, Loader2, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import StoreHeader from '@/components/store/StoreHeader';
 import HeroBanner from '@/components/store/HeroBanner';
 import CategoryFilter from '@/components/store/CategoryFilter';
 import ProductCard from '@/components/store/ProductCard';
-import ProductModal from '@/components/store/ProductModal';
-
 import StoreFooter from '@/components/store/StoreFooter';
 
 interface Product {
@@ -37,12 +36,12 @@ type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 const ITEMS_PER_PAGE = 12;
 
 export default function Store() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [company, setCompany] = useState<CompanySettings>({ name: 'Loja', phone: null });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortOption>('name-asc');
@@ -114,7 +113,7 @@ export default function Store() {
       <HeroBanner
         companyName={company.name}
         products={products}
-        onProductSelect={(p) => setSelectedProduct(p as Product)}
+        onProductSelect={(p) => navigate(`/loja/${p.id}`)}
       />
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16 space-y-3 sm:space-y-5">
@@ -189,7 +188,7 @@ export default function Store() {
         <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
           <AnimatePresence mode="popLayout">
             {paginated.map((product) => (
-              <ProductCard key={product.id} product={product} onSelect={(p) => setSelectedProduct(p as Product)} />
+              <ProductCard key={product.id} product={product} />
             ))}
           </AnimatePresence>
         </motion.div>
@@ -244,13 +243,6 @@ export default function Store() {
           </div>
         )}
       </main>
-
-      <ProductModal
-        product={selectedProduct}
-        open={!!selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        whatsappNumber={company.phone || ''}
-      />
 
       <StoreFooter companyName={company.name} />
       </div>

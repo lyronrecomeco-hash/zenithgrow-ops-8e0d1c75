@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Package } from 'lucide-react';
+import { Package, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -15,10 +16,10 @@ interface Product {
 
 interface ProductCardProps {
   product: Product;
-  onSelect: (product: Product) => void;
 }
 
-export default function ProductCard({ product, onSelect }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
+  const navigate = useNavigate();
   const inStock = product.stock > 0;
   const formattedPrice = product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -29,7 +30,7 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
       transition={{ duration: 0.25 }}
-      onClick={() => onSelect(product)}
+      onClick={() => navigate(`/loja/${product.id}`)}
       className="bg-card border border-border/70 overflow-hidden cursor-pointer group hover:border-primary/50 hover:shadow-lg hover:shadow-primary/15 transition-all duration-200 flex flex-col rounded-xl relative"
     >
       {/* Subtle glow on hover */}
@@ -77,10 +78,19 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
 
         {/* Brand */}
         {product.brand && (
-          <span className="text-[10px] text-muted-foreground/60 leading-none mt-auto pt-1.5 uppercase tracking-wide">
+          <span className="text-[10px] text-muted-foreground/60 leading-none uppercase tracking-wide">
             {product.brand}
           </span>
         )}
+
+        {/* CTA Button */}
+        <button
+          className="mt-auto pt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+          onClick={(e) => { e.stopPropagation(); navigate(`/loja/${product.id}`); }}
+        >
+          <Eye className="w-3.5 h-3.5" />
+          Ver detalhes
+        </button>
       </div>
     </motion.div>
   );
