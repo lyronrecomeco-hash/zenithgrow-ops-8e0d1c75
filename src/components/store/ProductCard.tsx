@@ -19,7 +19,8 @@ interface ProductCardProps {
   onSelect: (product: Product) => void;
 }
 
-export default function ProductCard({ product, onSelect }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
+  const navigate = useNavigate();
   const inStock = product.stock > 0;
   const formattedPrice = product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
