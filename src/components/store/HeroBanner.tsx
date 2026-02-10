@@ -48,123 +48,158 @@ export default function HeroBanner({ companyName, products = [], onProductSelect
       <div className="absolute inset-0 gradient-primary opacity-10" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_70%)]" />
 
-      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-10 md:py-14">
-        {/* Title section */}
+      <div className="relative max-w-7xl mx-auto sm:px-4 py-2 sm:py-10 md:py-14">
+        {/* Title section - compact on mobile */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-4 sm:mb-8"
+          className="text-center mb-2 sm:mb-8 px-3 sm:px-0"
         >
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-2 sm:mb-3">
-            <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-1 sm:mb-3">
+            <ShoppingBag className="w-3 h-3" />
             Catálogo de Produtos
           </div>
-          <h2 className="text-xl sm:text-3xl md:text-5xl font-extrabold text-foreground mb-1 tracking-tight">
+          <h2 className="text-lg sm:text-3xl md:text-5xl font-extrabold text-foreground tracking-tight">
             {companyName}
           </h2>
-          <p className="text-xs sm:text-base text-muted-foreground max-w-xl mx-auto">
+          <p className="text-[11px] sm:text-base text-muted-foreground max-w-xl mx-auto">
             Confira nossos produtos e finalize pelo WhatsApp!
           </p>
         </motion.div>
 
         {/* Product slider */}
         {featured.length > 0 && product && (
-          <div className="relative -mx-3 sm:mx-auto sm:max-w-4xl">
-            <div className="overflow-hidden sm:rounded-2xl glass-card">
+          <div className="relative sm:max-w-4xl sm:mx-auto">
+            {/* MOBILE: full-bleed ML style */}
+            <div className="sm:hidden">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={product.id}
-                  initial={{ opacity: 0, x: 50 }}
+                  initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.35 }}
-                  className="cursor-pointer"
+                  exit={{ opacity: 0, x: -40 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative cursor-pointer"
                   onClick={() => onProductSelect?.(product)}
                 >
-                  {/* MOBILE: full-width ML-style layout */}
-                  <div className="relative sm:hidden">
-                    <div className="w-full aspect-[2/1] bg-secondary/20 flex items-center justify-center overflow-hidden">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <Package className="w-12 h-12 text-muted-foreground/30" />
-                      )}
-                    </div>
-                    {/* Overlay gradient with product info */}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 pb-3 pt-8">
-                      {product.brand && (
-                        <span className="text-[10px] text-white/70 uppercase tracking-wider">
-                          {product.brand}
-                        </span>
-                      )}
-                      <h3 className="text-sm font-bold text-white line-clamp-1 leading-snug">
-                        {product.name}
-                      </h3>
-                      <p className="text-xl font-extrabold text-white mt-0.5">
-                        {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </p>
-                    </div>
+                  <div className="w-full aspect-[16/9] bg-secondary/30 flex items-center justify-center overflow-hidden">
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package className="w-14 h-14 text-muted-foreground/30" />
+                    )}
                   </div>
-
-                  {/* DESKTOP: horizontal layout (image left, info right) */}
-                  <div className="hidden sm:flex flex-row gap-6 items-center p-5">
-                    <div className="w-44 h-44 md:w-52 md:h-52 rounded-xl bg-secondary/30 flex items-center justify-center overflow-hidden shrink-0">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-full h-full object-contain p-2"
-                        />
-                      ) : (
-                        <Package className="w-10 h-10 text-muted-foreground/30" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      {product.brand && (
-                        <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                          {product.brand}
-                        </span>
-                      )}
-                      <h3 className="text-lg md:text-xl font-bold text-foreground line-clamp-2 leading-snug">
-                        {product.name}
-                      </h3>
-                      <p className="text-2xl md:text-3xl font-bold text-primary leading-tight">
-                        {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </p>
-                      <span className="inline-block text-xs font-medium text-green-400">
-                        Disponível
+                  {/* Overlay with info */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-3 pt-10">
+                    {product.brand && (
+                      <span className="text-[10px] text-white/60 uppercase tracking-widest">
+                        {product.brand}
                       </span>
-                    </div>
+                    )}
+                    <h3 className="text-base font-bold text-white line-clamp-1 leading-tight">
+                      {product.name}
+                    </h3>
+                    <p className="text-2xl font-extrabold text-white mt-0.5">
+                      {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </p>
                   </div>
                 </motion.div>
               </AnimatePresence>
+
+              {/* Mobile nav arrows */}
+              {featured.length > 1 && (
+                <>
+                  <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/80 active:scale-95 z-10">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/80 active:scale-95 z-10">
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+
+              {/* Mobile dots */}
+              {featured.length > 1 && (
+                <div className="flex justify-center gap-1.5 mt-2 mb-1">
+                  {featured.map((_, i) => (
+                    <button key={i} onClick={() => setCurrent(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'bg-primary w-5' : 'bg-muted-foreground/30 w-1.5'}`} />
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Navigation arrows */}
-            {featured.length > 1 && (
-              <>
-                <button onClick={prev} className="absolute left-1 sm:-left-4 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full glass-card-strong flex items-center justify-center text-foreground hover:text-primary transition-colors z-10">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button onClick={next} className="absolute right-1 sm:-right-4 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full glass-card-strong flex items-center justify-center text-foreground hover:text-primary transition-colors z-10">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </>
-            )}
-
-            {/* Dots */}
-            {featured.length > 1 && (
-              <div className="flex justify-center gap-1.5 mt-3 sm:mt-4">
-                {featured.map((_, i) => (
-                  <button key={i} onClick={() => setCurrent(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'bg-primary w-5' : 'bg-muted-foreground/30 w-1.5'}`} />
-                ))}
+            {/* DESKTOP: glass card style */}
+            <div className="hidden sm:block">
+              <div className="overflow-hidden rounded-2xl glass-card">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.35 }}
+                    className="cursor-pointer"
+                    onClick={() => onProductSelect?.(product)}
+                  >
+                    <div className="flex flex-row gap-6 items-center p-5">
+                      <div className="w-44 h-44 md:w-52 md:h-52 rounded-xl bg-secondary/30 flex items-center justify-center overflow-hidden shrink-0">
+                        {product.image_url ? (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-contain p-2"
+                          />
+                        ) : (
+                          <Package className="w-10 h-10 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        {product.brand && (
+                          <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                            {product.brand}
+                          </span>
+                        )}
+                        <h3 className="text-lg md:text-xl font-bold text-foreground line-clamp-2 leading-snug">
+                          {product.name}
+                        </h3>
+                        <p className="text-2xl md:text-3xl font-bold text-primary leading-tight">
+                          {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </p>
+                        <span className="inline-block text-xs font-medium text-green-400">
+                          Disponível
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
-            )}
+
+              {/* Desktop nav arrows */}
+              {featured.length > 1 && (
+                <>
+                  <button onClick={prev} className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full glass-card-strong flex items-center justify-center text-foreground hover:text-primary transition-colors z-10">
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button onClick={next} className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full glass-card-strong flex items-center justify-center text-foreground hover:text-primary transition-colors z-10">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
+              {/* Desktop dots */}
+              {featured.length > 1 && (
+                <div className="flex justify-center gap-1.5 mt-4">
+                  {featured.map((_, i) => (
+                    <button key={i} onClick={() => setCurrent(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'bg-primary w-5' : 'bg-muted-foreground/30 w-1.5'}`} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
