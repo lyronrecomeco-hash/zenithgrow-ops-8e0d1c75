@@ -30,7 +30,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
       transition={{ duration: 0.25 }}
-      onClick={() => navigate(`/produto/${product.code}`)}
+      onClick={() => navigate(`/produto/${product.id}`)}
       className="bg-card border border-border/70 overflow-hidden cursor-pointer group hover:border-primary/50 hover:shadow-lg hover:shadow-primary/15 transition-all duration-200 flex flex-col rounded-xl relative"
     >
       {/* Subtle glow on hover */}
@@ -86,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* CTA Button */}
         <button
           className="mt-auto pt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
-          onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.code}`); }}
+          onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.id}`); }}
         >
           <Eye className="w-3.5 h-3.5" />
           Ver detalhes

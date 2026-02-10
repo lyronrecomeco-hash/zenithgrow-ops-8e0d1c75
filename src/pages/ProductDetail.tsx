@@ -33,7 +33,7 @@ interface CompanySettings {
 }
 
 export default function ProductDetail() {
-  const { code } = useParams<{ code: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addItem } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
@@ -47,7 +47,7 @@ export default function ProductDetail() {
   useEffect(() => {
     const load = async () => {
       const [prodRes, compRes] = await Promise.all([
-        supabase.from('products').select('id,name,code,price,image_url,stock,brand,description,category_id').eq('code', code!).maybeSingle(),
+        supabase.from('products').select('id,name,code,price,image_url,stock,brand,description,category_id').eq('id', id!).maybeSingle(),
         supabase.from('company_settings').select('name,phone').limit(1).maybeSingle(),
       ]);
       if (prodRes.data) setProduct(prodRes.data);
@@ -57,7 +57,7 @@ export default function ProductDetail() {
     load();
     setQuantity(1);
     setAddedToCart(false);
-  }, [code]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -87,7 +87,7 @@ export default function ProductDetail() {
 
   const handleShare = async () => {
     const baseUrl = window.location.origin;
-    const shareUrl = `${baseUrl}/produto/${product.code}`;
+    const shareUrl = `${baseUrl}/produto/${product.id}`;
     const shareText = `Confira: ${product.name} por ${formattedPrice}`;
     try {
       if (navigator.share) {
