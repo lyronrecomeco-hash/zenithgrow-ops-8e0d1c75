@@ -112,47 +112,7 @@ export default function Store() {
       <div className="relative z-10">
       <StoreHeader companyName={company.name} whatsappNumber={company.phone || ''} search={search} onSearchChange={setSearch} />
 
-        {/* Advanced Filters */}
-        {showFilters && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex flex-wrap gap-3 justify-center items-center"
-          >
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortOption)}
-                className="text-sm py-1.5 px-3 rounded-lg glass-input text-foreground bg-transparent focus:outline-none"
-              >
-                <option value="name-asc">Nome A-Z</option>
-                <option value="name-desc">Nome Z-A</option>
-                <option value="price-asc">Menor preço</option>
-                <option value="price-desc">Maior preço</option>
-              </select>
-            </div>
-            <div className="flex gap-1.5">
-              {(['all', 'available', 'unavailable'] as const).map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setStockFilter(opt)}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                    stockFilter === opt
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'glass-input text-muted-foreground border-border hover:text-foreground'
-                  }`}
-                >
-                  {opt === 'all' ? 'Todos' : opt === 'available' ? 'Disponíveis' : 'Esgotados'}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Categories */}
-        <CategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
+      <HeroBanner
 
         {/* Results count */}
         <p className="text-xs text-muted-foreground text-center">

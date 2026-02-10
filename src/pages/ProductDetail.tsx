@@ -138,7 +138,7 @@ export default function ProductDetail() {
       </div>
 
       <div className="relative z-10">
-        <StoreHeader companyName={company.name} whatsappNumber={company.phone || ''} />
+        <StoreHeader companyName={company.name} whatsappNumber={company.phone || ''} search="" onSearchChange={() => {}} />
 
         <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24">
           {/* Back button */}
