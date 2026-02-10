@@ -8,6 +8,7 @@ import HeroBanner from '@/components/store/HeroBanner';
 import CategoryFilter from '@/components/store/CategoryFilter';
 import ProductCard from '@/components/store/ProductCard';
 import StoreFooter from '@/components/store/StoreFooter';
+import FloatingWhatsApp from '@/components/store/FloatingWhatsApp';
 
 interface Product {
   id: string;
