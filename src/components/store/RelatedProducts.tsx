@@ -5,6 +5,7 @@ import { Package } from 'lucide-react';
 
 interface Product {
   id: string;
+  code: string;
   name: string;
   price: number;
   image_url: string | null;
@@ -26,7 +27,7 @@ export default function RelatedProducts({ categoryId, currentProductId }: Relate
     const load = async () => {
       const { data } = await supabase
         .from('products')
-        .select('id,name,price,image_url,stock,brand')
+        .select('id,code,name,price,image_url,stock,brand')
         .eq('category_id', categoryId)
         .neq('id', currentProductId)
         .gt('stock', 0)
@@ -45,7 +46,7 @@ export default function RelatedProducts({ categoryId, currentProductId }: Relate
         {products.map((p) => (
           <div
             key={p.id}
-            onClick={() => navigate(`/produto/${p.id}`)}
+            onClick={() => navigate(`/produto/${p.code}`)}
             className="bg-card border border-border/60 rounded-xl overflow-hidden cursor-pointer group hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all"
           >
             <div className="aspect-[4/3] bg-secondary/30 flex items-center justify-center overflow-hidden">
