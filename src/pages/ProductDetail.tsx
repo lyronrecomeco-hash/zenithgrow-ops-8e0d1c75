@@ -86,7 +86,7 @@ export default function ProductDetail() {
 
   const handleShare = async () => {
     const baseUrl = window.location.origin;
-    const shareUrl = `${baseUrl}/loja/${product.id}`;
+    const shareUrl = `${baseUrl}/produto/${product.id}`;
     const shareText = `Confira: ${product.name} por ${formattedPrice}`;
     try {
       if (navigator.share) {
