@@ -20,6 +20,7 @@ import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import Store from "@/pages/Store";
+import ProductDetail from "@/pages/ProductDetail";
 
 const queryClient = new QueryClient();
 
