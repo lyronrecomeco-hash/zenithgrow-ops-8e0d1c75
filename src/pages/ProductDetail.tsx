@@ -10,6 +10,7 @@ import StoreHeader from '@/components/store/StoreHeader';
 import StoreFooter from '@/components/store/StoreFooter';
 import OrderForm from '@/components/store/OrderForm';
 import RelatedProducts from '@/components/store/RelatedProducts';
+import TechSpecs from '@/components/store/TechSpecs';
 import FloatingWhatsApp from '@/components/store/FloatingWhatsApp';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from '@/hooks/use-toast';
