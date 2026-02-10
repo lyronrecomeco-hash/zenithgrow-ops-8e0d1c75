@@ -5,6 +5,7 @@ import { Package } from 'lucide-react';
 
 interface Product {
   id: string;
+  code: string;
   name: string;
   price: number;
   image_url: string | null;
