@@ -168,14 +168,7 @@ export default function ProductDetail() {
                 ) : (
                   <Package className="w-20 h-20 text-muted-foreground/20" />
                 )}
-                {/* Share button on image */}
-                <button
-                  onClick={handleShare}
-                  className="absolute top-3 right-3 w-9 h-9 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                  aria-label="Compartilhar"
-                >
-                  {copied ? <Check className="w-4 h-4 text-primary" /> : <Share2 className="w-4 h-4" />}
-                </button>
+                {/* Share button - hidden/inactive */}
               </div>
 
               {/* Key info */}
