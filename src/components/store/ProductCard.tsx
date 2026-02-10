@@ -30,7 +30,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
       transition={{ duration: 0.25 }}
-      onClick={() => navigate(`/produto/${product.id}`)}
+      onClick={() => navigate(`/produto/${product.code}`)}
       className="bg-card border border-border/70 overflow-hidden cursor-pointer group hover:border-primary/50 hover:shadow-lg hover:shadow-primary/15 transition-all duration-200 flex flex-col rounded-xl relative"
     >
       {/* Subtle glow on hover */}
