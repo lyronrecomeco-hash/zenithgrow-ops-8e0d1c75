@@ -36,12 +36,12 @@ type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 const ITEMS_PER_PAGE = 12;
 
 export default function Store() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [company, setCompany] = useState<CompanySettings>({ name: 'Loja', phone: null });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortOption>('name-asc');
