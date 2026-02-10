@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { Package, Eye } from 'lucide-react';
 import { Package, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
