@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Search, Loader2, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { Loader2, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import StoreHeader from '@/components/store/StoreHeader';
 import HeroBanner from '@/components/store/HeroBanner';
 import CategoryFilter from '@/components/store/CategoryFilter';
 import ProductCard from '@/components/store/ProductCard';
 import ProductModal from '@/components/store/ProductModal';
-
 import StoreFooter from '@/components/store/StoreFooter';
 
 interface Product {
@@ -64,7 +63,6 @@ export default function Store() {
     load();
   }, []);
 
-  // Reset page when filters change
   useEffect(() => { setPage(1); }, [selectedCategory, search, sort, stockFilter]);
 
   const filtered = useMemo(() => {
@@ -101,84 +99,85 @@ export default function Store() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <StoreHeader companyName={company.name} />
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Header with integrated search */}
+      <StoreHeader companyName={company.name} search={search} onSearchChange={setSearch} />
+
+      {/* Hero/Banner with slider */}
       <HeroBanner
         companyName={company.name}
         products={products}
         onProductSelect={(p) => setSelectedProduct(p as Product)}
       />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16 space-y-4 sm:space-y-6">
-        {/* Search + Filter Toggle */}
-        <div className="flex gap-2 max-w-lg mx-auto">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar produto..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-card/60 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
-            />
-          </div>
+      {/* Main content */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-4 pb-12">
+        {/* Categories - horizontal scroll */}
+        <div className="py-3 border-b border-border/30">
+          <CategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
+        </div>
+
+        {/* Toolbar: count + sort toggle */}
+        <div className="flex items-center justify-between py-2.5">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} produto{filtered.length !== 1 ? 's' : ''}
+          </p>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`p-2.5 rounded-xl border transition-colors ${showFilters ? 'text-primary border-primary/50 bg-primary/10' : 'text-muted-foreground border-border/50 bg-card/60'}`}
+            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
+              showFilters ? 'text-primary border-primary/40 bg-primary/5' : 'text-muted-foreground border-border/40'
+            }`}
           >
-            <SlidersHorizontal className="w-4 h-4" />
+            <SlidersHorizontal className="w-3 h-3" />
+            Filtros
           </button>
         </div>
 
-        {/* Advanced Filters */}
-        {showFilters && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex flex-wrap gap-3 justify-center items-center"
-          >
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortOption)}
-                className="text-sm py-1.5 px-3 rounded-lg glass-input text-foreground bg-transparent focus:outline-none"
-              >
-                <option value="name-asc">Nome A-Z</option>
-                <option value="name-desc">Nome Z-A</option>
-                <option value="price-asc">Menor preço</option>
-                <option value="price-desc">Maior preço</option>
-              </select>
-            </div>
-            <div className="flex gap-1.5">
-              {(['all', 'available', 'unavailable'] as const).map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setStockFilter(opt)}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                    stockFilter === opt
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'glass-input text-muted-foreground border-border hover:text-foreground'
-                  }`}
-                >
-                  {opt === 'all' ? 'Todos' : opt === 'available' ? 'Disponíveis' : 'Esgotados'}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
+        {/* Filters panel */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-wrap gap-2 items-center pb-3 border-b border-border/30 mb-1">
+                <div className="flex items-center gap-1.5">
+                  <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as SortOption)}
+                    className="text-xs py-1.5 px-2.5 rounded-lg bg-secondary/40 border border-border/40 text-foreground focus:outline-none"
+                  >
+                    <option value="name-asc">Nome A-Z</option>
+                    <option value="name-desc">Nome Z-A</option>
+                    <option value="price-asc">Menor preço</option>
+                    <option value="price-desc">Maior preço</option>
+                  </select>
+                </div>
+                <div className="flex gap-1">
+                  {(['all', 'available', 'unavailable'] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => setStockFilter(opt)}
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                        stockFilter === opt
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'text-muted-foreground border-border/40 hover:text-foreground'
+                      }`}
+                    >
+                      {opt === 'all' ? 'Todos' : opt === 'available' ? 'Disponíveis' : 'Esgotados'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Categories */}
-        <CategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
-
-        {/* Results count */}
-        <p className="text-xs text-muted-foreground text-center">
-          {filtered.length} produto{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
-        </p>
-
-        {/* Grid */}
-        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        {/* Product Grid */}
+        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 pt-2">
           <AnimatePresence mode="popLayout">
             {paginated.map((product) => (
               <ProductCard key={product.id} product={product} onSelect={(p) => setSelectedProduct(p as Product)} />
@@ -187,16 +186,16 @@ export default function Store() {
         </motion.div>
 
         {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-12">Nenhum produto encontrado.</p>
+          <p className="text-center text-muted-foreground py-16 text-sm">Nenhum produto encontrado.</p>
         )}
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-4">
+          <div className="flex items-center justify-center gap-1.5 pt-6">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-2 rounded-lg text-sm glass-input text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary transition-colors"
+              className="px-3 py-2 rounded-lg text-xs border border-border/40 text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary transition-colors"
             >
               Anterior
             </button>
@@ -210,15 +209,15 @@ export default function Store() {
                 }, [])
                 .map((item, idx) =>
                   item === 'dots' ? (
-                    <span key={`dots-${idx}`} className="px-2 py-2 text-muted-foreground text-sm">…</span>
+                    <span key={`dots-${idx}`} className="px-1.5 py-2 text-muted-foreground text-xs">…</span>
                   ) : (
                     <button
                       key={item}
                       onClick={() => setPage(item)}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                      className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
                         page === item
-                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
-                          : 'glass-input text-muted-foreground hover:text-foreground'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'border border-border/40 text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       {item}
@@ -229,7 +228,7 @@ export default function Store() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-2 rounded-lg text-sm glass-input text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary transition-colors"
+              className="px-3 py-2 rounded-lg text-xs border border-border/40 text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary transition-colors"
             >
               Próximo
             </button>

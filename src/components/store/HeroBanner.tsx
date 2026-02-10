@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -22,7 +22,7 @@ interface HeroBannerProps {
 
 export default function HeroBanner({ companyName, products = [], onProductSelect }: HeroBannerProps) {
   const [current, setCurrent] = useState(0);
-  const featured = products.filter((p) => p.stock > 0 && p.image_url).slice(0, 10);
+  const featured = products.filter((p) => p.stock > 0 && p.image_url).slice(0, 8);
 
   const next = useCallback(() => {
     if (featured.length === 0) return;
@@ -40,89 +40,74 @@ export default function HeroBanner({ companyName, products = [], onProductSelect
     return () => clearInterval(timer);
   }, [next, featured.length]);
 
+  if (featured.length === 0) return null;
+
   const product = featured[current];
 
   return (
-    <section className="relative overflow-hidden py-10 md:py-16">
-      <div className="absolute inset-0 gradient-primary opacity-10" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_70%)]" />
-      <div className="relative max-w-7xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
-            <ShoppingBag className="w-4 h-4" />
-            Catálogo de Produtos
-          </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-2 tracking-tight">
-            {companyName}
-          </h2>
-          <p className="text-base text-muted-foreground max-w-xl mx-auto">
-            Confira nossos produtos e finalize pelo WhatsApp!
-          </p>
-        </motion.div>
+    <section className="relative bg-gradient-to-b from-primary/5 to-transparent">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-4 py-4 sm:py-6">
+        <div className="relative overflow-hidden rounded-xl bg-card/40 border border-border/30">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 cursor-pointer"
+              onClick={() => onProductSelect?.(product)}
+            >
+              {/* Image */}
+              <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-lg bg-secondary/30 flex items-center justify-center overflow-hidden shrink-0">
+                {product.image_url ? (
+                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-lg" />
+                ) : (
+                  <Package className="w-8 h-8 text-muted-foreground/20" />
+                )}
+              </div>
 
-        {/* Slider de produtos em destaque */}
-        {featured.length > 0 && product && (
-          <div className="relative max-w-4xl mx-auto">
-            <div className="overflow-hidden rounded-2xl glass-card p-4 sm:p-6">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, x: 60 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -60 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center cursor-pointer"
-                  onClick={() => onProductSelect?.(product)}
-                >
-                  <div className="w-full sm:w-48 md:w-56 aspect-square rounded-xl bg-secondary/50 flex items-center justify-center overflow-hidden shrink-0">
-                    {product.image_url ? (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover rounded-xl"
-                      />
-                    ) : (
-                      <Package className="w-12 h-12 text-muted-foreground/30" />
-                    )}
-                  </div>
-                  <div className="flex-1 text-center sm:text-left space-y-2 min-w-0 w-full">
-                    {product.brand && (
-                      <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                        {product.brand}
-                      </span>
-                    )}
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground line-clamp-2 break-words">
-                      {product.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">Cód: {product.code}</p>
-                    <p className="text-xl md:text-2xl font-bold text-primary">
-                      {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </p>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
+                {product.brand && (
+                  <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">
+                    {product.brand}
+                  </span>
+                )}
+                <h3 className="text-sm sm:text-base md:text-lg font-medium text-foreground line-clamp-2 leading-snug">
+                  {product.name}
+                </h3>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-primary leading-none">
+                  {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </p>
+                <p className="text-[10px] sm:text-xs text-[hsl(var(--success))]">Disponível</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
 
-            {featured.length > 1 && (
-              <>
-                <button onClick={prev} className="absolute left-1 md:-left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full glass-card-strong flex items-center justify-center text-foreground hover:text-primary transition-colors">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button onClick={next} className="absolute right-1 md:-right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full glass-card-strong flex items-center justify-center text-foreground hover:text-primary transition-colors">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <div className="flex justify-center gap-1.5 mt-4">
-                  {featured.map((_, i) => (
-                    <button key={i} onClick={() => setCurrent(i)} className={`w-2 h-2 rounded-full transition-all ${i === current ? 'bg-primary w-6' : 'bg-muted-foreground/30'}`} />
-                  ))}
-                </div>
-              </>
-            )}
+          {/* Nav arrows */}
+          {featured.length > 1 && (
+            <>
+              <button onClick={prev} className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-card/80 border border-border/30 flex items-center justify-center text-foreground hover:text-primary transition-colors">
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={next} className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-card/80 border border-border/30 flex items-center justify-center text-foreground hover:text-primary transition-colors">
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Dots */}
+        {featured.length > 1 && (
+          <div className="flex justify-center gap-1 mt-2.5">
+            {featured.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`h-1.5 rounded-full transition-all ${i === current ? 'bg-primary w-4' : 'bg-muted-foreground/20 w-1.5'}`}
+              />
+            ))}
           </div>
         )}
       </div>

@@ -24,55 +24,52 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.25 }}
+      exit={{ opacity: 0, y: 6 }}
+      transition={{ duration: 0.2 }}
       onClick={() => onSelect(product)}
-      className="bg-card/60 border border-border/50 overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-200 flex flex-col rounded-xl"
+      className="bg-card/50 border border-border/40 overflow-hidden cursor-pointer hover:border-primary/30 transition-colors duration-200 flex flex-col rounded-lg"
     >
-      {/* Image - fixed aspect ratio */}
-      <div className="aspect-square bg-secondary/30 flex items-center justify-center overflow-hidden relative">
+      {/* Image */}
+      <div className="aspect-square bg-secondary/20 flex items-center justify-center overflow-hidden relative">
         {product.image_url ? (
           <img
             src={product.image_url}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover"
             loading="lazy"
           />
         ) : (
-          <Package className="w-10 h-10 text-muted-foreground/20" />
+          <Package className="w-8 h-8 text-muted-foreground/20" />
         )}
         {!inStock && (
-          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full border border-destructive/20">
+          <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+            <span className="text-[10px] font-semibold text-destructive bg-destructive/10 px-2 py-0.5 rounded border border-destructive/20">
               Esgotado
             </span>
           </div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-3 flex flex-col flex-1 gap-1">
-        {product.brand && (
-          <span className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none">
-            {product.brand}
-          </span>
-        )}
-
-        <h3 className="font-medium text-foreground line-clamp-2 leading-snug text-sm min-h-[2.5em]">
+      {/* Content - clean vertical stack like ML */}
+      <div className="p-2.5 sm:p-3 flex flex-col gap-1.5 flex-1">
+        {/* Product name - 2 lines max */}
+        <h3 className="text-[13px] sm:text-sm text-foreground leading-[1.3] line-clamp-2 font-normal">
           {product.name}
         </h3>
 
-        <p className="text-[10px] text-muted-foreground leading-none mt-auto">
-          Cód: {product.code}
+        {/* Price - prominent */}
+        <p className="text-[15px] sm:text-lg font-semibold text-foreground leading-none mt-auto pt-1">
+          {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
         </p>
 
-        <div className="pt-1.5 mt-1 border-t border-border/30">
-          <span className="text-base font-bold text-primary leading-none">
-            {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </span>
-        </div>
+        {/* Shipping-like info line */}
+        {inStock && (
+          <p className="text-[10px] sm:text-[11px] text-[hsl(var(--success))] font-medium leading-none">
+            Disponível em estoque
+          </p>
+        )}
       </div>
     </motion.div>
   );
