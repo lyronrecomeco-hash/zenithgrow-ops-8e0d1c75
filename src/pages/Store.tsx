@@ -109,22 +109,22 @@ export default function Store() {
         onProductSelect={(p) => setSelectedProduct(p as Product)}
       />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16 space-y-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16 space-y-4 sm:space-y-6">
         {/* Search + Filter Toggle */}
         <div className="flex gap-2 max-w-lg mx-auto">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Buscar por nome, código ou marca..."
+              placeholder="Buscar produto..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl glass-input text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-card/60 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`p-2.5 rounded-xl glass-input transition-colors ${showFilters ? 'text-primary border-primary/50' : 'text-muted-foreground'}`}
+            className={`p-2.5 rounded-xl border transition-colors ${showFilters ? 'text-primary border-primary/50 bg-primary/10' : 'text-muted-foreground border-border/50 bg-card/60'}`}
           >
             <SlidersHorizontal className="w-4 h-4" />
           </button>
@@ -178,7 +178,7 @@ export default function Store() {
         </p>
 
         {/* Grid */}
-        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
           <AnimatePresence mode="popLayout">
             {paginated.map((product) => (
               <ProductCard key={product.id} product={product} onSelect={(p) => setSelectedProduct(p as Product)} />
