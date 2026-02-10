@@ -112,11 +112,13 @@ export default function Store() {
       <div className="relative z-10">
       <StoreHeader companyName={company.name} whatsappNumber={company.phone || ''} search={search} onSearchChange={setSearch} />
 
-      <HeroBanner
-        companyName={company.name}
-        products={products}
-        onProductSelect={(p) => navigate(`/produto/${p.id}`)}
-      />
+      {!search && (
+        <HeroBanner
+          companyName={company.name}
+          products={products}
+          onProductSelect={(p) => navigate(`/produto/${p.id}`)}
+        />
+      )}
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16 space-y-3 sm:space-y-5">
         {/* Categories */}
