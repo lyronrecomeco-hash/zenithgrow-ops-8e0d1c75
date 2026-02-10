@@ -87,6 +87,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           Ver detalhes
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }
