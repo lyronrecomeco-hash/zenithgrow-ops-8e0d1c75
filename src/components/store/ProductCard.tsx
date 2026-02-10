@@ -31,7 +31,7 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.3 }}
       onClick={() => onSelect(product)}
-      className="glass-card overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-300"
+      className="glass-card overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-300 flex flex-col"
     >
       <div className="aspect-square bg-secondary/50 flex items-center justify-center overflow-hidden">
         {product.image_url ? (
@@ -42,26 +42,30 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
             loading="lazy"
           />
         ) : (
-          <Package className="w-16 h-16 text-muted-foreground/30" />
+          <Package className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/30" />
         )}
       </div>
 
-      <div className="p-4 space-y-2">
+      <div className="p-3 sm:p-4 space-y-1.5 sm:space-y-2 flex flex-col flex-1">
         {product.brand && (
-          <span className="text-xs text-muted-foreground uppercase tracking-wider">{product.brand}</span>
+          <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider truncate">
+            {product.brand}
+          </span>
         )}
-        <h3 className="font-semibold text-foreground line-clamp-2 leading-tight">{product.name}</h3>
-        <p className="text-xs text-muted-foreground">Cód: {product.code}</p>
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-lg font-bold text-primary">
+        <h3 className="font-semibold text-foreground line-clamp-2 leading-snug text-sm sm:text-base">
+          {product.name}
+        </h3>
+        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Cód: {product.code}</p>
+        <div className="flex items-center justify-between pt-1 mt-auto">
+          <span className="text-base sm:text-lg font-bold text-primary">
             {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </span>
-          <Badge variant={inStock ? 'default' : 'destructive'} className="text-[10px]">
-            {inStock ? 'Disponível' : 'Indisponível'}
+          <Badge variant={inStock ? 'default' : 'destructive'} className="text-[9px] sm:text-[10px] px-1.5 py-0.5">
+            {inStock ? 'Disponível' : 'Esgotado'}
           </Badge>
         </div>
-        <button className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-all">
-          <ShoppingBag className="w-4 h-4" />
+        <button className="w-full mt-1.5 sm:mt-2 flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 rounded-lg bg-primary/10 text-primary text-xs sm:text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-all">
+          <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           Ver Detalhes
         </button>
       </div>
