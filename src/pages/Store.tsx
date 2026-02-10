@@ -8,6 +8,7 @@ import HeroBanner from '@/components/store/HeroBanner';
 import CategoryFilter from '@/components/store/CategoryFilter';
 import ProductCard from '@/components/store/ProductCard';
 import StoreFooter from '@/components/store/StoreFooter';
+import FloatingWhatsApp from '@/components/store/FloatingWhatsApp';
 
 interface Product {
   id: string;
@@ -109,7 +110,7 @@ export default function Store() {
       </div>
 
       <div className="relative z-10">
-      <StoreHeader companyName={company.name} />
+      <StoreHeader companyName={company.name} whatsappNumber={company.phone || ''} />
       <HeroBanner
         companyName={company.name}
         products={products}
@@ -244,8 +245,10 @@ export default function Store() {
         )}
       </main>
 
-      <StoreFooter companyName={company.name} />
+      <StoreFooter companyName={company.name} phone={company.phone} />
       </div>
+
+      <FloatingWhatsApp phone={company.phone || ''} />
     </div>
   );
 }
