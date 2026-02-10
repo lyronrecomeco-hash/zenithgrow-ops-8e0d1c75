@@ -24,7 +24,7 @@ export default function Login() {
     const result = await login(email, password);
     setLoading(false);
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/admin/dashboard');
     } else {
       setError(result.error || 'Email ou senha inválidos.');
     }
