@@ -134,88 +134,92 @@ export default function OrderForm({ open, onClose, whatsappNumber }: OrderFormPr
           </div>
         )}
 
-        {/* Form */}
-        <div className="space-y-3 mt-1">
-          <div className="space-y-1.5">
-            <Label htmlFor="order-name" className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5" /> Nome completo *
-            </Label>
-            <Input
-              id="order-name"
-              placeholder="Seu nome"
-              value={form.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              maxLength={100}
-              className="bg-secondary/20 border-border/50 focus:border-primary/50"
-            />
-          </div>
+        {/* Form - only show when cart has items */}
+        {items.length > 0 && (
+          <>
+            <div className="space-y-3 mt-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="order-name" className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5" /> Nome completo *
+                </Label>
+                <Input
+                  id="order-name"
+                  placeholder="Seu nome"
+                  value={form.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                  maxLength={100}
+                  className="bg-secondary/20 border-border/50 focus:border-primary/50"
+                />
+              </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="order-phone" className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5" /> Telefone *
-            </Label>
-            <Input
-              id="order-phone"
-              placeholder="(00) 00000-0000"
-              value={form.phone}
-              onChange={(e) => handleChange('phone', e.target.value)}
-              maxLength={20}
-              className="bg-secondary/20 border-border/50 focus:border-primary/50"
-            />
-          </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="order-phone" className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5" /> Telefone *
+                </Label>
+                <Input
+                  id="order-phone"
+                  placeholder="(00) 00000-0000"
+                  value={form.phone}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  maxLength={20}
+                  className="bg-secondary/20 border-border/50 focus:border-primary/50"
+                />
+              </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="order-address" className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" /> Endereço de entrega
-            </Label>
-            <Input
-              id="order-address"
-              placeholder="Rua, número, bairro"
-              value={form.address}
-              onChange={(e) => handleChange('address', e.target.value)}
-              maxLength={200}
-              className="bg-secondary/20 border-border/50 focus:border-primary/50"
-            />
-          </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="order-address" className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" /> Endereço de entrega
+                </Label>
+                <Input
+                  id="order-address"
+                  placeholder="Rua, número, bairro"
+                  value={form.address}
+                  onChange={(e) => handleChange('address', e.target.value)}
+                  maxLength={200}
+                  className="bg-secondary/20 border-border/50 focus:border-primary/50"
+                />
+              </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="order-city" className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" /> Cidade
-            </Label>
-            <Input
-              id="order-city"
-              placeholder="Sua cidade"
-              value={form.city}
-              onChange={(e) => handleChange('city', e.target.value)}
-              maxLength={100}
-              className="bg-secondary/20 border-border/50 focus:border-primary/50"
-            />
-          </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="order-city" className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" /> Cidade
+                </Label>
+                <Input
+                  id="order-city"
+                  placeholder="Sua cidade"
+                  value={form.city}
+                  onChange={(e) => handleChange('city', e.target.value)}
+                  maxLength={100}
+                  className="bg-secondary/20 border-border/50 focus:border-primary/50"
+                />
+              </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="order-notes" className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5" /> Observações
-            </Label>
-            <Textarea
-              id="order-notes"
-              placeholder="Cor, tamanho, detalhes..."
-              value={form.notes}
-              onChange={(e) => handleChange('notes', e.target.value)}
-              maxLength={300}
-              rows={2}
-              className="bg-secondary/20 border-border/50 focus:border-primary/50 resize-none"
-            />
-          </div>
-        </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="order-notes" className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" /> Observações
+                </Label>
+                <Textarea
+                  id="order-notes"
+                  placeholder="Cor, tamanho, detalhes..."
+                  value={form.notes}
+                  onChange={(e) => handleChange('notes', e.target.value)}
+                  maxLength={300}
+                  rows={2}
+                  className="bg-secondary/20 border-border/50 focus:border-primary/50 resize-none"
+                />
+              </div>
+            </div>
 
-        <Button
-          onClick={handleSubmit}
-          disabled={!isValid}
-          className="w-full gap-2 h-12 text-sm font-bold gradient-primary text-primary-foreground hover:opacity-90 rounded-xl mt-2"
-        >
-          <MessageCircle className="w-4 h-4" />
-          Enviar pedido pelo WhatsApp
-        </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!isValid}
+              className="w-full gap-2 h-12 text-sm font-bold gradient-primary text-primary-foreground hover:opacity-90 rounded-xl mt-2"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Enviar pedido pelo WhatsApp
+            </Button>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
