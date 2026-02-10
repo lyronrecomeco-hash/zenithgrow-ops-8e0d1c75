@@ -244,13 +244,6 @@ export default function Store() {
         )}
       </main>
 
-      <ProductModal
-        product={selectedProduct}
-        open={!!selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        whatsappNumber={company.phone || ''}
-      />
-
       <StoreFooter companyName={company.name} />
       </div>
     </div>
