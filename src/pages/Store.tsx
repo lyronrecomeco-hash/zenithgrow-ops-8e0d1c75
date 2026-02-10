@@ -178,7 +178,7 @@ export default function Store() {
         </p>
 
         {/* Grid */}
-        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
           <AnimatePresence mode="popLayout">
             {paginated.map((product) => (
               <ProductCard key={product.id} product={product} onSelect={(p) => setSelectedProduct(p as Product)} />
