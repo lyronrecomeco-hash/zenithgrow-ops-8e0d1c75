@@ -120,17 +120,21 @@ export default function Store() {
         />
       )}
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16 space-y-3 sm:space-y-5">
-        {/* Categories */}
-        <CategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-16">
+        {/* Categories - tighter spacing from banner */}
+        <div className="pt-3 sm:pt-5">
+          <CategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
+        </div>
 
-        {/* Results count */}
-        <p className="text-xs text-muted-foreground text-center">
-          {filtered.length} produto{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
-        </p>
+        {/* Results count + sort area */}
+        <div className="flex items-center justify-between mt-3 sm:mt-4 mb-3 sm:mb-4">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} produto{filtered.length !== 1 ? 's' : ''}
+          </p>
+        </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {paginated.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -146,7 +150,7 @@ export default function Store() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-4">
+          <div className="flex items-center justify-center gap-2 pt-6">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}

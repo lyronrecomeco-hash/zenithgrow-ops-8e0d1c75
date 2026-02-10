@@ -25,7 +25,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div
       onClick={() => navigate(`/produto/${product.id}`)}
-      className="bg-card border border-border/70 overflow-hidden cursor-pointer group hover:border-primary/50 hover:shadow-lg hover:shadow-primary/15 transition-all duration-200 flex flex-col rounded-xl relative"
+      className="bg-card/80 border border-border/50 overflow-hidden cursor-pointer group hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all duration-200 flex flex-col rounded-xl relative"
     >
       {/* Subtle glow on hover */}
       <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.06),transparent_70%)] pointer-events-none" />

@@ -48,22 +48,22 @@ export default function HeroBanner({ companyName, products = [], onProductSelect
       <div className="absolute inset-0 gradient-primary opacity-10" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_70%)]" />
 
-      <div className="relative max-w-7xl mx-auto sm:px-4 py-2 sm:py-10 md:py-14">
-        {/* Title section - compact on mobile */}
+      <div className="relative max-w-7xl mx-auto sm:px-4 pt-0 sm:py-10 md:py-14">
+        {/* Title section - hidden on mobile, shown on desktop */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-2 sm:mb-8 px-3 sm:px-0"
+          className="text-center mb-2 sm:mb-8 px-3 sm:px-0 hidden sm:block"
         >
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-1 sm:mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-3">
             <ShoppingBag className="w-3 h-3" />
             Catálogo de Produtos
           </div>
-          <h2 className="text-lg sm:text-3xl md:text-5xl font-extrabold text-foreground tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight">
             {companyName}
           </h2>
-          <p className="text-[11px] sm:text-base text-muted-foreground max-w-xl mx-auto">
+          <p className="text-base text-muted-foreground max-w-xl mx-auto">
             Confira nossos produtos e finalize pelo WhatsApp!
           </p>
         </motion.div>
