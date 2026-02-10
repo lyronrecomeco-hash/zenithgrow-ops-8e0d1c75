@@ -167,63 +167,115 @@ export default function ProductDetail() {
                   className="flex-1 gap-1.5 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all"
                 >
                   <Info className="w-3.5 h-3.5" />
-                  Detalhes
+                  Descrição
                 </TabsTrigger>
                 <TabsTrigger
                   value="specs"
                   className="flex-1 gap-1.5 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all"
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
-                  Especificações
+                  Ficha Técnica
                 </TabsTrigger>
               </TabsList>
 
+              {/* Descrição */}
               <TabsContent value="details" className="mt-3 sm:mt-4">
-                <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-6">
-                  {product.description ? (
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line break-words">
-                      {product.description}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground/60 italic">
-                      Nenhuma descrição disponível para este produto.
-                    </p>
-                  )}
+                <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
+                  {/* Section header */}
+                  <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border/40 bg-secondary/20">
+                    <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                      <Info className="w-4 h-4 text-primary" />
+                      Descrição do Produto
+                    </h3>
+                  </div>
+                  <div className="p-4 sm:p-6">
+                    {product.description ? (
+                      <div className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line break-words">
+                        {product.description}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
+                        <Info className="w-8 h-8 text-muted-foreground/20" />
+                        <p className="text-sm text-muted-foreground/60">
+                          Nenhuma descrição disponível para este produto.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
 
+              {/* Ficha Técnica */}
               <TabsContent value="specs" className="mt-3 sm:mt-4">
                 <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {[
-                        { label: 'Nome', value: product.name },
-                        { label: 'Código', value: product.code, mono: true },
-                        ...(product.brand ? [{ label: 'Marca', value: product.brand }] : []),
-                        { label: 'Preço', value: formattedPrice, highlight: true },
-                        { label: 'Disponibilidade', value: inStock ? 'Em estoque' : 'Esgotado', badge: true, inStock },
-                      ].map((row, i) => (
-                        <tr key={i} className="border-b border-border/30 last:border-b-0">
-                          <td className="px-4 py-3 text-muted-foreground bg-secondary/30 font-medium w-32 sm:w-40">
-                            {row.label}
-                          </td>
-                          <td className="px-4 py-3 text-foreground">
-                            {row.badge ? (
-                              <Badge variant={row.inStock ? 'default' : 'destructive'} className="text-xs">
-                                {row.value}
-                              </Badge>
-                            ) : row.highlight ? (
-                              <span className="font-bold text-primary">{row.value}</span>
-                            ) : row.mono ? (
-                              <span className="font-mono text-xs">{row.value}</span>
-                            ) : (
-                              <span className="break-words">{row.value}</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {/* Section header */}
+                  <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border/40 bg-secondary/20">
+                    <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-primary" />
+                      Ficha Técnica
+                    </h3>
+                  </div>
+
+                  <div className="divide-y divide-border/30">
+                    {/* Nome */}
+                    <div className="flex items-start gap-3 px-4 sm:px-6 py-3.5 sm:py-4">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Package className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Produto</p>
+                        <p className="text-sm sm:text-base text-foreground font-semibold break-words">{product.name}</p>
+                      </div>
+                    </div>
+
+                    {/* Código */}
+                    <div className="flex items-start gap-3 px-4 sm:px-6 py-3.5 sm:py-4">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Barcode className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Código</p>
+                        <p className="text-sm text-foreground font-mono">{product.code}</p>
+                      </div>
+                    </div>
+
+                    {/* Marca */}
+                    {product.brand && (
+                      <div className="flex items-start gap-3 px-4 sm:px-6 py-3.5 sm:py-4">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <Tag className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Marca</p>
+                          <p className="text-sm sm:text-base text-foreground font-semibold">{product.brand}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preço */}
+                    <div className="flex items-start gap-3 px-4 sm:px-6 py-3.5 sm:py-4">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Box className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Preço</p>
+                        <p className="text-lg sm:text-xl text-primary font-extrabold">{formattedPrice}</p>
+                      </div>
+                    </div>
+
+                    {/* Disponibilidade */}
+                    <div className="flex items-start gap-3 px-4 sm:px-6 py-3.5 sm:py-4">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${inStock ? 'bg-emerald-500/10' : 'bg-destructive/10'}`}>
+                        {inStock ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <XCircle className="w-4 h-4 text-destructive" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Disponibilidade</p>
+                        <Badge variant={inStock ? 'default' : 'destructive'} className="text-xs">
+                          {inStock ? 'Em estoque' : 'Esgotado'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
