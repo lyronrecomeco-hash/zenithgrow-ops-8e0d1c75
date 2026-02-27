@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, User, Loader2, Palette, RotateCcw, Check } from 'lucide-react';
+import { Store, User, Loader2, Palette, RotateCcw, Check, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -48,30 +48,84 @@ function hexToHsl(hex: string): string {
   return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-const colorLabels: Record<keyof ThemeColors, string> = {
-  primary: 'Principal',
-  accent: 'Destaque',
-  background: 'Fundo',
-  card: 'Cards',
-  sidebar: 'Menu Lateral',
-  success: 'Sucesso',
-  warning: 'Alerta',
-  destructive: 'Erro',
-};
+const editableColorLabels: { key: keyof ThemeColors; label: string }[] = [
+  { key: 'primary', label: 'Principal' },
+  { key: 'accent', label: 'Destaque' },
+  { key: 'success', label: 'Sucesso' },
+  { key: 'warning', label: 'Alerta' },
+  { key: 'destructive', label: 'Erro' },
+];
 
-const presets: { name: string; colors: ThemeColors }[] = [
+const presets: { name: string; icon?: 'sun' | 'moon'; colors: ThemeColors }[] = [
   {
-    name: 'Padrão',
+    name: 'Escuro Padrão',
+    icon: 'moon',
     colors: defaultColors,
   },
   {
+    name: 'Claro',
+    icon: 'sun',
+    colors: {
+      primary: '217 91% 50%',
+      accent: '199 89% 42%',
+      background: '0 0% 97%',
+      foreground: '220 20% 12%',
+      card: '0 0% 100%',
+      cardForeground: '220 20% 12%',
+      sidebar: '220 15% 95%',
+      sidebarForeground: '220 15% 35%',
+      secondary: '220 14% 92%',
+      secondaryForeground: '220 15% 25%',
+      muted: '220 14% 90%',
+      mutedForeground: '220 10% 45%',
+      border: '220 13% 88%',
+      input: '220 13% 90%',
+      success: '152 69% 36%',
+      warning: '38 92% 45%',
+      destructive: '0 72% 48%',
+    },
+  },
+  {
+    name: 'Oceano',
+    icon: 'moon',
+    colors: {
+      primary: '199 89% 48%',
+      accent: '185 80% 45%',
+      background: '210 30% 6%',
+      foreground: '200 15% 93%',
+      card: '210 25% 10%',
+      cardForeground: '200 15% 93%',
+      sidebar: '210 28% 7%',
+      sidebarForeground: '200 15% 65%',
+      secondary: '210 20% 14%',
+      secondaryForeground: '200 15% 88%',
+      muted: '210 16% 16%',
+      mutedForeground: '200 12% 48%',
+      border: '210 16% 14%',
+      input: '210 16% 16%',
+      success: '152 69% 41%',
+      warning: '38 92% 50%',
+      destructive: '0 72% 51%',
+    },
+  },
+  {
     name: 'Esmeralda',
+    icon: 'moon',
     colors: {
       primary: '152 69% 41%',
       accent: '168 76% 42%',
-      background: '220 25% 6%',
-      card: '220 20% 10%',
-      sidebar: '220 25% 7%',
+      background: '160 20% 5%',
+      foreground: '150 15% 93%',
+      card: '160 18% 9%',
+      cardForeground: '150 15% 93%',
+      sidebar: '160 22% 6%',
+      sidebarForeground: '150 15% 65%',
+      secondary: '160 16% 13%',
+      secondaryForeground: '150 15% 88%',
+      muted: '160 12% 15%',
+      mutedForeground: '150 10% 48%',
+      border: '160 12% 13%',
+      input: '160 12% 15%',
       success: '152 69% 41%',
       warning: '38 92% 50%',
       destructive: '0 72% 51%',
@@ -79,12 +133,68 @@ const presets: { name: string; colors: ThemeColors }[] = [
   },
   {
     name: 'Roxo',
+    icon: 'moon',
     colors: {
       primary: '263 70% 58%',
       accent: '290 60% 50%',
-      background: '260 20% 6%',
+      background: '260 22% 6%',
+      foreground: '260 15% 93%',
       card: '260 18% 10%',
-      sidebar: '260 22% 7%',
+      cardForeground: '260 15% 93%',
+      sidebar: '260 20% 7%',
+      sidebarForeground: '260 14% 65%',
+      secondary: '260 16% 14%',
+      secondaryForeground: '260 14% 88%',
+      muted: '260 12% 16%',
+      mutedForeground: '260 10% 48%',
+      border: '260 12% 14%',
+      input: '260 12% 16%',
+      success: '152 69% 41%',
+      warning: '38 92% 50%',
+      destructive: '0 72% 51%',
+    },
+  },
+  {
+    name: 'Claro Cinza',
+    icon: 'sun',
+    colors: {
+      primary: '220 14% 35%',
+      accent: '220 10% 50%',
+      background: '220 10% 96%',
+      foreground: '220 20% 15%',
+      card: '0 0% 100%',
+      cardForeground: '220 20% 15%',
+      sidebar: '220 12% 93%',
+      sidebarForeground: '220 12% 40%',
+      secondary: '220 12% 90%',
+      secondaryForeground: '220 14% 30%',
+      muted: '220 10% 88%',
+      mutedForeground: '220 8% 50%',
+      border: '220 10% 86%',
+      input: '220 10% 88%',
+      success: '152 60% 36%',
+      warning: '38 85% 45%',
+      destructive: '0 65% 48%',
+    },
+  },
+  {
+    name: 'Rosa',
+    icon: 'moon',
+    colors: {
+      primary: '330 80% 58%',
+      accent: '340 75% 50%',
+      background: '330 18% 6%',
+      foreground: '330 12% 93%',
+      card: '330 14% 10%',
+      cardForeground: '330 12% 93%',
+      sidebar: '330 16% 7%',
+      sidebarForeground: '330 12% 65%',
+      secondary: '330 12% 14%',
+      secondaryForeground: '330 12% 88%',
+      muted: '330 10% 16%',
+      mutedForeground: '330 8% 48%',
+      border: '330 10% 14%',
+      input: '330 10% 16%',
       success: '152 69% 41%',
       warning: '38 92% 50%',
       destructive: '0 72% 51%',
@@ -92,38 +202,22 @@ const presets: { name: string; colors: ThemeColors }[] = [
   },
   {
     name: 'Laranja',
+    icon: 'moon',
     colors: {
       primary: '24 90% 52%',
       accent: '38 92% 50%',
       background: '20 20% 6%',
+      foreground: '20 12% 93%',
       card: '20 16% 10%',
-      sidebar: '20 20% 7%',
-      success: '152 69% 41%',
-      warning: '38 92% 50%',
-      destructive: '0 72% 51%',
-    },
-  },
-  {
-    name: 'Rosa',
-    colors: {
-      primary: '330 80% 58%',
-      accent: '340 75% 50%',
-      background: '330 18% 6%',
-      card: '330 14% 10%',
-      sidebar: '330 18% 7%',
-      success: '152 69% 41%',
-      warning: '38 92% 50%',
-      destructive: '0 72% 51%',
-    },
-  },
-  {
-    name: 'Ciano',
-    colors: {
-      primary: '185 80% 45%',
-      accent: '199 89% 48%',
-      background: '200 25% 6%',
-      card: '200 20% 10%',
-      sidebar: '200 25% 7%',
+      cardForeground: '20 12% 93%',
+      sidebar: '20 18% 7%',
+      sidebarForeground: '20 12% 65%',
+      secondary: '20 14% 14%',
+      secondaryForeground: '20 12% 88%',
+      muted: '20 10% 16%',
+      mutedForeground: '20 8% 48%',
+      border: '20 10% 14%',
+      input: '20 10% 16%',
       success: '152 69% 41%',
       warning: '38 92% 50%',
       destructive: '0 72% 51%',
@@ -149,7 +243,7 @@ function ColorPicker({ label, value, onChange }: { label: string; value: string;
   );
 }
 
-function PresetCard({ name, colors, isActive, onClick }: { name: string; colors: ThemeColors; isActive: boolean; onClick: () => void }) {
+function PresetCard({ name, icon, colors, isActive, onClick }: { name: string; icon?: 'sun' | 'moon'; colors: ThemeColors; isActive: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -162,12 +256,14 @@ function PresetCard({ name, colors, isActive, onClick }: { name: string; colors:
           <Check className="w-2.5 h-2.5 text-primary-foreground" />
         </div>
       )}
-      <div className="flex gap-1">
-        <div className="w-5 h-5 rounded-full" style={{ background: `hsl(${colors.primary})` }} />
-        <div className="w-5 h-5 rounded-full" style={{ background: `hsl(${colors.accent})` }} />
-        <div className="w-5 h-5 rounded-full" style={{ background: `hsl(${colors.success})` }} />
+      <div className="flex items-center gap-1">
+        {icon === 'sun' ? <Sun className="w-3 h-3 text-muted-foreground" /> : <Moon className="w-3 h-3 text-muted-foreground" />}
+        <div className="flex gap-0.5">
+          <div className="w-4 h-4 rounded-full" style={{ background: `hsl(${colors.primary})` }} />
+          <div className="w-4 h-4 rounded-full" style={{ background: `hsl(${colors.accent})` }} />
+        </div>
       </div>
-      <span className="text-xs font-medium">{name}</span>
+      <span className="text-[11px] font-medium leading-tight text-center">{name}</span>
     </button>
   );
 }
@@ -242,10 +338,10 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="empresa" className="w-full">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="empresa" className="gap-2"><Store className="w-4 h-4" />Empresa</TabsTrigger>
-          <TabsTrigger value="perfil" className="gap-2"><User className="w-4 h-4" />Perfil</TabsTrigger>
-          <TabsTrigger value="cores" className="gap-2"><Palette className="w-4 h-4" />Cores</TabsTrigger>
+        <TabsList className="w-full sm:w-auto bg-transparent border-0 p-0 gap-1">
+          <TabsTrigger value="empresa" className="gap-2 data-[state=active]:bg-secondary/60 data-[state=active]:shadow-none"><Store className="w-4 h-4" />Empresa</TabsTrigger>
+          <TabsTrigger value="perfil" className="gap-2 data-[state=active]:bg-secondary/60 data-[state=active]:shadow-none"><User className="w-4 h-4" />Perfil</TabsTrigger>
+          <TabsTrigger value="cores" className="gap-2 data-[state=active]:bg-secondary/60 data-[state=active]:shadow-none"><Palette className="w-4 h-4" />Cores</TabsTrigger>
         </TabsList>
 
         <TabsContent value="empresa">
@@ -259,12 +355,12 @@ export default function Settings() {
                 <p className="text-sm text-muted-foreground">Esses dados aparecem nas notas fiscais</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2"><Label>Nome da Empresa</Label><Input value={company.name} onChange={e => setCompany(f => ({ ...f, name: e.target.value }))} className="bg-secondary/50" /></div>
-                <div className="space-y-2"><Label>CNPJ</Label><Input value={company.cnpj} onChange={e => setCompany(f => ({ ...f, cnpj: e.target.value }))} placeholder="00.000.000/0000-00" className="bg-secondary/50" /></div>
-                <div className="space-y-2"><Label>Endereço</Label><Input value={company.address} onChange={e => setCompany(f => ({ ...f, address: e.target.value }))} className="bg-secondary/50" /></div>
+                <div className="space-y-2"><Label>Nome da Empresa</Label><Input value={company.name} onChange={e => setCompany(f => ({ ...f, name: e.target.value }))} className="bg-secondary/50 border-0" /></div>
+                <div className="space-y-2"><Label>CNPJ</Label><Input value={company.cnpj} onChange={e => setCompany(f => ({ ...f, cnpj: e.target.value }))} placeholder="00.000.000/0000-00" className="bg-secondary/50 border-0" /></div>
+                <div className="space-y-2"><Label>Endereço</Label><Input value={company.address} onChange={e => setCompany(f => ({ ...f, address: e.target.value }))} className="bg-secondary/50 border-0" /></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>Telefone</Label><Input value={company.phone} onChange={e => setCompany(f => ({ ...f, phone: e.target.value }))} className="bg-secondary/50" /></div>
-                  <div className="space-y-2"><Label>Email</Label><Input value={company.email} onChange={e => setCompany(f => ({ ...f, email: e.target.value }))} className="bg-secondary/50" /></div>
+                  <div className="space-y-2"><Label>Telefone</Label><Input value={company.phone} onChange={e => setCompany(f => ({ ...f, phone: e.target.value }))} className="bg-secondary/50 border-0" /></div>
+                  <div className="space-y-2"><Label>Email</Label><Input value={company.email} onChange={e => setCompany(f => ({ ...f, email: e.target.value }))} className="bg-secondary/50 border-0" /></div>
                 </div>
                 <Button className="w-full" onClick={saveCompany} disabled={loading}>
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
@@ -285,9 +381,9 @@ export default function Settings() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2"><Label>Email</Label><Input value={user?.email || ''} disabled className="bg-secondary/50 opacity-60" /></div>
-                <div className="space-y-2"><Label>Nova Senha</Label><Input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm(f => ({ ...f, newPassword: e.target.value }))} placeholder="••••••••" className="bg-secondary/50" /></div>
-                <div className="space-y-2"><Label>Confirmar Senha</Label><Input type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm(f => ({ ...f, confirmPassword: e.target.value }))} placeholder="••••••••" className="bg-secondary/50" /></div>
+                <div className="space-y-2"><Label>Email</Label><Input value={user?.email || ''} disabled className="bg-secondary/50 opacity-60 border-0" /></div>
+                <div className="space-y-2"><Label>Nova Senha</Label><Input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm(f => ({ ...f, newPassword: e.target.value }))} placeholder="••••••••" className="bg-secondary/50 border-0" /></div>
+                <div className="space-y-2"><Label>Confirmar Senha</Label><Input type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm(f => ({ ...f, confirmPassword: e.target.value }))} placeholder="••••••••" className="bg-secondary/50 border-0" /></div>
                 <Button className="w-full" onClick={updatePassword} disabled={loading}>Atualizar Senha</Button>
               </CardContent>
             </Card>
@@ -303,13 +399,15 @@ export default function Settings() {
                   <Palette className="w-4 h-4 text-primary" />
                   Temas Prontos
                 </CardTitle>
+                <p className="text-xs text-muted-foreground">Clique para aplicar instantaneamente</p>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                   {presets.map(preset => (
                     <PresetCard
                       key={preset.name}
                       name={preset.name}
+                      icon={preset.icon}
                       colors={preset.colors}
                       isActive={isPresetActive(preset)}
                       onClick={() => applyPreset(preset)}
@@ -323,20 +421,22 @@ export default function Settings() {
             <Card className="glass-card border-0">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-semibold">Cores Personalizadas</CardTitle>
+                  <div>
+                    <CardTitle className="text-base font-semibold">Ajustar Cores</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">Alterações em tempo real</p>
+                  </div>
                   <Button variant="ghost" size="sm" onClick={() => { resetColors(); toast({ title: 'Cores restauradas!' }); }} className="gap-1.5 text-xs h-8">
                     <RotateCcw className="w-3 h-3" />
                     Restaurar
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Alterações aplicadas em tempo real</p>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
-                  {(Object.keys(colorLabels) as (keyof ThemeColors)[]).map(key => (
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1">
+                  {editableColorLabels.map(({ key, label }) => (
                     <ColorPicker
                       key={key}
-                      label={colorLabels[key]}
+                      label={label}
                       value={colors[key]}
                       onChange={v => setColor(key, v)}
                     />
