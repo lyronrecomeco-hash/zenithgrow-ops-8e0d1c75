@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -32,33 +33,35 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <CompanyProvider>
-            <CartProvider>
-              <Routes>
-                {/* Loja pública */}
-                <Route path="/" element={<Store />} />
-                <Route path="/produto/:id" element={<ProductDetail />} />
+          <ThemeProvider>
+            <CompanyProvider>
+              <CartProvider>
+                <Routes>
+                  {/* Loja pública */}
+                  <Route path="/" element={<Store />} />
+                  <Route path="/produto/:id" element={<ProductDetail />} />
 
-                {/* Admin */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/admin" element={<Layout />}>
-                  <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="products" element={<Products />} />
-                  <Route path="categories" element={<Categories />} />
-                  <Route path="stock" element={<Stock />} />
-                  <Route path="clients" element={<Clients />} />
-                  <Route path="sales" element={<Sales />} />
-                  <Route path="installments" element={<Installments />} />
-                  <Route path="financial" element={<Financial />} />
-                  <Route path="invoices" element={<Invoices />} />
-                  <Route path="reports" element={<Reports />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </CartProvider>
-          </CompanyProvider>
+                  {/* Admin */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/admin" element={<Layout />}>
+                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="categories" element={<Categories />} />
+                    <Route path="stock" element={<Stock />} />
+                    <Route path="clients" element={<Clients />} />
+                    <Route path="sales" element={<Sales />} />
+                    <Route path="installments" element={<Installments />} />
+                    <Route path="financial" element={<Financial />} />
+                    <Route path="invoices" element={<Invoices />} />
+                    <Route path="reports" element={<Reports />} />
+                    <Route path="settings" element={<Settings />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </CartProvider>
+            </CompanyProvider>
+          </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
